@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Iron Hive — Pixel Playground</title>
+  <meta name="description" content="A tower defence: build four kinds of turret along a fixed lane and stop twelve waves of crawlers." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Iron Hive</span>
+    <span class="chip">Best <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Scrap <b id="hudA">150</b></span>
+      <span class="chip">Core <b id="hudB">20</b></span>
+      <span class="chip">Wave <b id="hudC">0 / 12</b></span>
+    </div>
+
+    <div class="hud" id="shop">
+      <button class="btn small ghost" type="button" data-tower="dart">Dart · 50</button>
+      <button class="btn small ghost" type="button" data-tower="cannon">Cannon · 90</button>
+      <button class="btn small ghost" type="button" data-tower="frost">Frost · 60</button>
+      <button class="btn small ghost" type="button" data-tower="sniper">Sniper · 130</button>
+    </div>
+
+    <div class="stage" style="max-width:880px">
+      <canvas id="board" width="880" height="560" role="img"
+              aria-label="Grid map with a lane and buildable tiles"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <p class="hint">
+      Pick a turret, then tap an open tile to build. Tap a built turret to upgrade it.
+      The core takes damage whenever a crawler reaches the hive.
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/games-data.js"></script>
+  <script src="../assets/js/originals.js"></script>
+  <script src="../assets/js/hive.js"></script>
+</body>
+</html>
