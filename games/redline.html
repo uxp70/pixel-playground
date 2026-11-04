@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Redline Rally — Pixel Playground</title>
+  <meta name="description" content="A pseudo-3D night race: crests, hairpins and traffic. Chase the distance in ninety seconds." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Redline Rally</span>
+    <span class="chip">Best <b id="best">0</b> m</span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Distance <b id="hudA">0 m</b></span>
+      <span class="chip">Speed <b id="hudB">0</b></span>
+      <span class="chip">Time <b id="hudC">90</b></span>
+    </div>
+
+    <div class="stage" style="max-width:900px">
+      <canvas id="board" width="900" height="520" role="img"
+              aria-label="Night road ahead of your car with traffic and curves"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <div class="dpad" role="group" aria-label="Driving controls">
+      <button class="up" type="button" data-dir="up" aria-label="Accelerate">▲</button>
+      <button class="left" type="button" data-dir="left" aria-label="Steer left">◀</button>
+      <button class="down" type="button" data-dir="down" aria-label="Brake">▼</button>
+      <button class="right" type="button" data-dir="right" aria-label="Steer right">▶</button>
+    </div>
+
+    <p class="hint">
+      <kbd>↑</kbd> accelerate · <kbd>↓</kbd> brake · <kbd>←</kbd> <kbd>→</kbd> steer ·
+      or drag anywhere on the road to steer and hold for throttle
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/games-data.js"></script>
+  <script src="../assets/js/originals.js"></script>
+  <script src="../assets/js/redline.js"></script>
+</body>
+</html>
