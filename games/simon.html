@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Simon — Pixel Playground</title>
+  <meta name="description" content="Watch the colours and tones, then play the sequence back. How many rounds can you clear?" />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Simon</span>
+    <span class="chip">Best <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Round <b id="round">0</b></span>
+      <span class="chip">Cleared <b id="cleared">0</b></span>
+    </div>
+
+    <div class="stage" style="max-width:520px; overflow:visible; background:none; border:0; box-shadow:none;">
+      <div class="simon-board" id="board" role="group" aria-label="Simon pads">
+        <button class="simon-pad" type="button" data-color="green" aria-label="Green pad"></button>
+        <button class="simon-pad" type="button" data-color="red" aria-label="Red pad"></button>
+        <button class="simon-pad" type="button" data-color="yellow" aria-label="Yellow pad"></button>
+        <button class="simon-pad" type="button" data-color="blue" aria-label="Blue pad"></button>
+      </div>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <p class="simon-status" id="status" aria-live="polite">Press start to hear the first colour.</p>
+
+    <p class="hint">Each round adds one more step. Watch, listen, repeat — and don't tap too early.</p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/simon.js"></script>
+</body>
+</html>

@@ -48,7 +48,10 @@
     },
   };
 
+  /* ------------------------------------------------------------------ audio */
+
   var audioCtx = null;
+
   function context() {
     if (audioCtx) return audioCtx;
     var Ctor = window.AudioContext || window.webkitAudioContext;
@@ -65,39 +68,41 @@
     return localStorage.getItem(MUTE_KEY) === "1";
   }
 
-  /** Short blip. kind: "pick" | "good" | "bad" | "win" */
-  function beep(kind) {
+  /** One short tone. Returns immediately; does nothing when muted. */
+  function tone(freq, ms, type, volume) {
     if (isMuted()) return;
     var ctx = context();
-    if (!ctx || ctx.state === "suspended") {
-      try { ctx && ctx.resume(); } catch (err) { /* ignore */ }
-      if (!ctx) return;
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      try { ctx.resume(); } catch (err) { /* ignore */ }
     }
-    var notes = {
-      pick: [520, 0.06, "triangle", 0.05],
-      good: [740, 0.1, "sine", 0.07],
-      bad: [160, 0.16, "sawtooth", 0.05],
-      win: [880, 0.18, "triangle", 0.08],
-    }[kind] || [440, 0.08, "sine", 0.05];
-
     try {
       var osc = ctx.createOscillator();
       var gain = ctx.createGain();
       var now = ctx.currentTime;
-      osc.type = notes[2];
-      osc.frequency.setValueAtTime(notes[0], now);
-      if (kind === "win") {
-        osc.frequency.exponentialRampToValueAtTime(notes[0] * 1.6, now + notes[1]);
-      }
+      var dur = (ms || 160) / 1000;
+      osc.type = type || "sine";
+      osc.frequency.setValueAtTime(freq, now);
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(notes[3], now + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + notes[1]);
+      gain.gain.exponentialRampToValueAtTime(volume || 0.07, now + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
       osc.connect(gain).connect(ctx.destination);
       osc.start(now);
-      osc.stop(now + notes[1] + 0.02);
+      osc.stop(now + dur + 0.02);
     } catch (err) {
       /* audio is a nice-to-have */
     }
+  }
+
+  /** Named UI blips. kind: "pick" | "good" | "bad" | "win" */
+  function beep(kind) {
+    var notes = {
+      pick: [520, 60, "triangle", 0.05],
+      good: [740, 100, "sine", 0.07],
+      bad: [160, 160, "sawtooth", 0.05],
+      win: [880, 220, "triangle", 0.08],
+    }[kind] || [440, 80, "sine", 0.05];
+    tone(notes[0], notes[1], notes[2], notes[3]);
   }
 
   function bindMuteButton() {
@@ -116,6 +121,8 @@
     });
     paint();
   }
+
+  /* --------------------------------------------------------------- utilities */
 
   /**
    * Size a canvas for crisp rendering: logical coordinates stay at w x h,
@@ -192,9 +199,135 @@
     el.addEventListener("pointercancel", function () { tracking = false; });
   }
 
+  /* -------------------------------------------------------------- fullscreen */
+
+  /**
+   * Add a fullscreen toggle to any game page. Real Fullscreen API where it
+   * exists; on iPhone, where element fullscreen is unavailable, fall back to a
+   * fixed, full-viewport layout with the same markup and behaviour.
+   */
+  function setupFullscreen() {
+    var target = document.querySelector(".game-main");
+    var head = document.querySelector(".game-head");
+    if (!target || !head) return;
+
+    var toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "icon-btn";
+    toggle.setAttribute("data-fullscreen", "true");
+    toggle.title = "Fullscreen (F)";
+    head.appendChild(toggle);
+
+    var exit = document.createElement("button");
+    exit.type = "button";
+    exit.className = "icon-btn fs-exit";
+    exit.textContent = "✕";
+    exit.setAttribute("aria-label", "Exit fullscreen");
+    target.appendChild(exit);
+
+    var pseudoOn = false;
+
+    function active() {
+      return !!document.fullscreenElement ||
+        !!document.webkitFullscreenElement ||
+        pseudoOn;
+    }
+
+    function paint() {
+      var on = active();
+      toggle.textContent = on ? "✕" : "⛶";
+      toggle.setAttribute("aria-label", on ? "Exit fullscreen" : "Enter fullscreen");
+      toggle.setAttribute("aria-pressed", on ? "true" : "false");
+      exit.hidden = !on;
+      document.documentElement.classList.toggle("is-fullscreen", on);
+      document.body.classList.toggle("is-fullscreen", on);
+      if (window.dispatchEvent && typeof CustomEvent === "function") {
+        window.dispatchEvent(new CustomEvent("pp:fullscreenchange", { detail: { on: on } }));
+      }
+    }
+
+    function setPseudo(on) {
+      pseudoOn = on;
+      target.classList.toggle("is-fullscreen", on);
+      paint();
+    }
+
+    function request() {
+      if (target.requestFullscreen) {
+        var promise = target.requestFullscreen();
+        if (promise && promise.then) {
+          promise.then(paint).catch(function () { setPseudo(true); });
+        } else {
+          paint();
+        }
+      } else if (target.webkitRequestFullscreen) {
+        try { target.webkitRequestFullscreen(); } catch (err) { setPseudo(true); }
+        paint();
+      } else {
+        setPseudo(true);
+      }
+      beep("pick");
+    }
+
+    function release() {
+      if (document.exitFullscreen) {
+        var promise = document.exitFullscreen();
+        if (promise && promise.catch) promise.catch(function () {});
+      } else if (document.webkitExitFullscreen) {
+        try { document.webkitExitFullscreen(); } catch (err) { /* ignore */ }
+      }
+      setPseudo(false);
+      beep("pick");
+    }
+
+    toggle.addEventListener("click", function () {
+      if (active()) release(); else request();
+    });
+    exit.addEventListener("click", release);
+
+    ["fullscreenchange", "webkitfullscreenchange"].forEach(function (name) {
+      document.addEventListener(name, paint);
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key === "Escape" && pseudoOn) setPseudo(false);
+      if (event.key === "f" || event.key === "F") {
+        event.preventDefault();
+        if (active()) release(); else request();
+      }
+    });
+
+    exit.hidden = true;
+    paint();
+  }
+
+  /* ---------------------------------------------------- selection & gestures */
+
+  function lockSurfaces() {
+    document.addEventListener("contextmenu", function (event) {
+      var el = event.target;
+      if (el && el.closest && el.closest(
+        ".stage, .dpad, .board2048, .memory-board, .simon-board, .mine-board, .reaction-pad, .icon-btn"
+      )) {
+        event.preventDefault();
+      }
+    });
+
+    // Drag-selecting while playing is never intended.
+    document.addEventListener("selectstart", function (event) {
+      var el = event.target;
+      if (!el || !el.closest) return;
+      if (el.closest(".site-foot, .hint")) return;
+      event.preventDefault();
+    });
+  }
+
   window.PP = {
     scores: scores,
     sfx: beep,
+    tone: tone,
+    muted: isMuted,
     fitCanvas: fitCanvas,
     formatNumber: formatNumber,
     escapeHtml: escapeHtml,
@@ -202,11 +335,18 @@
     hideOverlay: hideOverlay,
     onDirectionalKeys: onDirectionalKeys,
     onSwipe: onSwipe,
+    setupFullscreen: setupFullscreen,
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bindMuteButton);
-  } else {
+  function boot() {
     bindMuteButton();
+    setupFullscreen();
+    lockSurfaces();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
   }
 })();

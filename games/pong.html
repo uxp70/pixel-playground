@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Pong — Pixel Playground</title>
+  <meta name="description" content="Play Pong against the computer. First to seven wins — drag your paddle with a finger, a mouse or the arrow keys." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Pong</span>
+    <span class="chip">Best rally <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">You <b id="you">0</b></span>
+      <span class="chip">CPU <b id="cpu">0</b></span>
+      <span class="chip">Rally <b id="rally">0</b></span>
+    </div>
+
+    <div class="stage">
+      <canvas id="board" width="800" height="600" role="img" aria-label="Pong court"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <p class="hint">
+      Drag anywhere on the court, or use <kbd>↑</kbd> <kbd>↓</kbd>. First to
+      <b>7</b> points wins the match.
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/pong.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Minesweeper — Pixel Playground</title>
+  <meta name="description" content="Classic Minesweeper on a 9x9 board with ten mines. Tap to clear, long-press or right-click to flag. The first tap is always safe." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Minesweeper</span>
+    <span class="chip">Best <b id="best">—</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Mines <b id="mines">10</b></span>
+      <span class="chip">Time <b id="time">0:00</b></span>
+      <span class="chip">Cleared <b id="cleared">0 / 71</b></span>
+    </div>
+
+    <div class="stage" style="max-width:460px">
+      <div class="mine-board" id="board" role="group" aria-label="Minesweeper board" style="--cols:9"></div>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <div class="game-tools">
+      <button class="btn small ghost mode-toggle" type="button" id="flagMode" aria-pressed="false">
+        🚩 Flag mode off
+      </button>
+      <button class="btn small ghost" type="button" id="newGame">New board</button>
+    </div>
+
+    <p class="hint">
+      Tap a square to clear it. Long-press (or right-click) to plant a flag — turn on
+      flag mode if you prefer tapping. Numbers count the mines around them.
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/minesweeper.js"></script>
+</body>
+</html>
