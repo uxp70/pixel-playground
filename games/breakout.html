@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Breakout — Pixel Playground</title>
+  <meta name="description" content="Bounce the ball, smash the wall of bricks and keep it off the floor. Mouse, touch or arrow keys." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Breakout</span>
+    <span class="chip">Best <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Score <b id="score">0</b></span>
+      <span class="chip">Bricks <b id="remaining">40</b></span>
+      <span class="chip">Lives <b class="lives" id="lives">♥♥♥</b></span>
+    </div>
+
+    <div class="stage">
+      <canvas id="board" width="800" height="600" role="img" aria-label="Breakout game board"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <p class="hint">
+      Move with the mouse, your finger, or <kbd>←</kbd> <kbd>→</kbd>. Three lives — every
+      brick you clear is 10 points.
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/breakout.js"></script>
+</body>
+</html>
