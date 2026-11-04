@@ -196,6 +196,10 @@
       game.score += 10;
       game.step = Math.max(MIN_STEP, game.step - STEP_DECAY);
       PP.sfx("good");
+      PP.juice.burstOn(canvas, head.x * CELL + CELL / 2, head.y * CELL + CELL / 2,
+        "#f472b6", 12, CELL * 1.8);
+      PP.juice.bump(scoreEl);
+      PP.juice.haptic(10);
       placeFood();
     } else {
       game.snake.pop();
@@ -234,6 +238,8 @@
     game.over = true;
     game.running = false;
     PP.sfx("bad");
+    PP.juice.shake(document.querySelector(".stage"), 9);
+    PP.juice.haptic([30, 60, 40]);
     var previousBest = best;
     best = PP.scores.save("snake", game.score, "high");
     paintHud();

@@ -96,13 +96,24 @@
 
   /** Named UI blips. kind: "pick" | "good" | "bad" | "win" */
   function beep(kind) {
-    var notes = {
-      pick: [520, 60, "triangle", 0.05],
-      good: [740, 100, "sine", 0.07],
-      bad: [160, 160, "sawtooth", 0.05],
-      win: [880, 220, "triangle", 0.08],
-    }[kind] || [440, 80, "sine", 0.05];
-    tone(notes[0], notes[1], notes[2], notes[3]);
+    if (kind === "good") {
+      tone(659.25, 90, "sine", 0.055);
+      setTimeout(function () { tone(987.77, 110, "sine", 0.04); }, 55);
+      return;
+    }
+    if (kind === "win") {
+      [523.25, 659.25, 783.99, 1046.5].forEach(function (freq, i) {
+        setTimeout(function () { tone(freq, 240, "triangle", 0.055); }, i * 95);
+      });
+      return;
+    }
+    if (kind === "bad") {
+      tone(196, 130, "sawtooth", 0.04);
+      setTimeout(function () { tone(130.81, 190, "sawtooth", 0.035); }, 85);
+      return;
+    }
+    var note = kind === "pick" ? [520, 60, "triangle", 0.05] : [440, 80, "sine", 0.05];
+    tone(note[0], note[1], note[2], note[3]);
   }
 
   function bindMuteButton() {
@@ -133,6 +144,8 @@
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     canvas.style.aspectRatio = w + " / " + h;
+    canvas.ppW = w;
+    canvas.ppH = h;
     var ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     return ctx;
@@ -323,7 +336,136 @@
     });
   }
 
+  /* ------------------------------------------------------------- feel ----- */
+
+  var reduceMotion = false;
+  try {
+    reduceMotion = !!(window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  } catch (err) {
+    reduceMotion = false;
+  }
+
+  /** Short vibration. Silenced with the sound, skipped when motion is reduced. */
+  function haptic(pattern) {
+    if (isMuted() || reduceMotion) return;
+    if (typeof navigator.vibrate !== "function") return;
+    try { navigator.vibrate(pattern === undefined ? 12 : pattern); } catch (err) { /* ignore */ }
+  }
+
+  /** Quick positional shake, self-cleaning. */
+  function shake(el, power) {
+    if (!el || reduceMotion || !el.animate) return;
+    var p = power === undefined ? 6 : power;
+    el.animate(
+      [
+        { transform: "translate3d(0,0,0)" },
+        { transform: "translate3d(" + -p + "px," + p * 0.6 + "px,0)" },
+        { transform: "translate3d(" + p + "px," + -p * 0.5 + "px,0)" },
+        { transform: "translate3d(" + -p * 0.4 + "px," + p * 0.2 + "px,0)" },
+        { transform: "translate3d(0,0,0)" },
+      ],
+      { duration: 260, easing: "cubic-bezier(.36,.07,.19,.97)" }
+    );
+  }
+
+  /** A counter pulses when its value changes. */
+  function bump(el) {
+    if (!el || reduceMotion) return;
+    var target = el.tagName === "B" ? el : el.querySelector("b") || el;
+    target.classList.remove("is-bumped");
+    void target.offsetWidth;
+    target.classList.add("is-bumped");
+    setTimeout(function () { target.classList.remove("is-bumped"); }, 400);
+  }
+
+  function fxLayer() {
+    var host = document.querySelector(".stage");
+    if (!host) return null;
+    var layer = host.querySelector(".fx");
+    if (!layer) {
+      layer = document.createElement("div");
+      layer.className = "fx";
+      layer.setAttribute("aria-hidden", "true");
+      host.appendChild(layer);
+    }
+    return layer;
+  }
+
+  /** Spray sparks from a point given in host-local CSS pixels. */
+  function burst(x, y, color, count, spread) {
+    if (reduceMotion) return;
+    var layer = fxLayer();
+    if (!layer) return;
+    var total = count || 10;
+    var reach = spread || 46;
+    for (var i = 0; i < total; i++) {
+      var spark = document.createElement("i");
+      var angle = (Math.PI * 2 * i) / total + Math.random() * 0.7;
+      var distance = reach * (0.4 + Math.random() * 0.8);
+      var size = 3 + Math.random() * 4;
+      spark.style.left = x + "px";
+      spark.style.top = y + "px";
+      spark.style.width = size + "px";
+      spark.style.height = size + "px";
+      spark.style.background = color || "#22d3ee";
+      layer.appendChild(spark);
+      if (!spark.animate) { spark.remove(); continue; }
+      var anim = spark.animate(
+        [
+          { transform: "translate(-50%,-50%) scale(1)", opacity: 0.95 },
+          {
+            transform: "translate(-50%,-50%) translate(" +
+              Math.cos(angle) * distance + "px," + Math.sin(angle) * distance +
+              "px) scale(0.15)",
+            opacity: 0,
+          },
+        ],
+        { duration: 380 + Math.random() * 280, easing: "cubic-bezier(.2,.7,.3,1)" }
+      );
+      anim.onfinish = (function (node) {
+        return function () { node.remove(); };
+      })(spark);
+    }
+  }
+
+  function burstFromRect(rect, hostRect, color, count, spread) {
+    burst(rect.left - hostRect.left + rect.width / 2,
+      rect.top - hostRect.top + rect.height / 2, color, count, spread);
+  }
+
+  /** Sparks from the centre of a DOM element (board tiles, cards, pads). */
+  function burstAt(el, color, count, spread) {
+    if (!el || reduceMotion || !el.getBoundingClientRect) return;
+    var host = document.querySelector(".stage");
+    if (!host) return;
+    burstFromRect(el.getBoundingClientRect(), host.getBoundingClientRect(),
+      color, count, spread);
+  }
+
+  /** Sparks at a point in a canvas's logical coordinate space. */
+  function burstOn(canvas, x, y, color, count, spread) {
+    if (!canvas || reduceMotion) return;
+    var host = document.querySelector(".stage");
+    if (!host) return;
+    var rect = canvas.getBoundingClientRect();
+    var hostRect = host.getBoundingClientRect();
+    var w = canvas.ppW || rect.width;
+    var h = canvas.ppH || rect.height;
+    var scale = Math.min(rect.width / w, rect.height / h);
+    burst(rect.left - hostRect.left + x * scale,
+      rect.top - hostRect.top + y * scale, color, count, spread);
+  }
+
   window.PP = {
+    juice: {
+      haptic: haptic,
+      shake: shake,
+      bump: bump,
+      burst: burst,
+      burstAt: burstAt,
+      burstOn: burstOn,
+    },
     scores: scores,
     sfx: beep,
     tone: tone,

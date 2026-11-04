@@ -32,7 +32,7 @@
     bestEl.textContent = PP.formatNumber(best);
   }
 
-  function render(newIndex) {
+  function render(newIndex, merged) {
     for (var i = 0; i < COUNT; i++) {
       var value = grid[i];
       var cell = cells[i];
@@ -44,11 +44,23 @@
         cell.removeAttribute("data-v");
         cell.removeAttribute("data-digits");
       }
-      cell.classList.remove("tile-new");
+      cell.classList.remove("tile-new", "tile-merged");
     }
     if (typeof newIndex === "number" && newIndex >= 0) {
       cells[newIndex].classList.add("tile-new");
     }
+    if (merged) {
+      merged.forEach(function (item) {
+        if (cells[item.index]) cells[item.index].classList.add("tile-merged");
+      });
+    }
+  }
+
+  function tileColor(value) {
+    if (value >= 1024) return "#818cf8";
+    if (value >= 128) return "#f472b6";
+    if (value >= 16) return "#34d399";
+    return "#22d3ee";
   }
 
   function spawn() {
@@ -94,9 +106,11 @@
     var packed = values.filter(Boolean);
     var out = [];
     var gained = 0;
+    var mergedAt = [];
     for (var i = 0; i < packed.length; i++) {
       if (packed[i] === packed[i + 1]) {
         var merged = packed[i] * 2;
+        mergedAt.push(out.length);
         out.push(merged);
         gained += merged;
         if (merged === 2048) won = true;
@@ -106,7 +120,7 @@
       }
     }
     while (out.length < SIZE) out.push(0);
-    return { out: out, gained: gained };
+    return { out: out, gained: gained, mergedAt: mergedAt };
   }
 
   function stuck() {
@@ -126,6 +140,7 @@
 
     var changed = false;
     var gainedTotal = 0;
+    var merges = [];
 
     lineIndices(dir).forEach(function (line) {
       var values = line.map(function (idx) { return grid[idx]; });
@@ -135,6 +150,9 @@
         grid[line[k]] = result.out[k];
       }
       gainedTotal += result.gained;
+      result.mergedAt.forEach(function (pos) {
+        merges.push({ index: line[pos], value: result.out[pos] });
+      });
     });
 
     if (!changed) return;
@@ -142,9 +160,18 @@
     score += gainedTotal;
     if (gainedTotal) PP.sfx("pick");
 
-    render(spawn());
+    render(spawn(), merges);
     best = PP.scores.save("2048", score, "high");
     paintHud();
+
+    if (merges.length) {
+      PP.juice.bump(scoreEl);
+      PP.juice.haptic(8);
+      PP.juice.shake(document.querySelector(".stage"), Math.min(7, 2 + merges.length));
+      merges.forEach(function (item) {
+        PP.juice.burstAt(cells[item.index], tileColor(item.value), 8, 44);
+      });
+    }
 
     if (won && !winShown) {
       winShown = true;
