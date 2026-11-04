@@ -12,6 +12,7 @@
 
   var canvas = document.getElementById("board");
   var ctx = PP.fitCanvas(canvas, W, H);
+  var stageEl = document.querySelector(".stage");
   var overlay = document.getElementById("overlay");
   var youEl = document.getElementById("you");
   var cpuEl = document.getElementById("cpu");
@@ -89,6 +90,9 @@
     game.ball.x = W / 2;
     game.ball.y = H / 2;
     PP.sfx(who === "you" ? "good" : "bad");
+    PP.juice.shake(stageEl, 7);
+    PP.juice.haptic([20, 40, 20]);
+    PP.juice.bump(who === "you" ? youEl : cpuEl);
     paintHud();
     if (game.score[who] >= WIN_SCORE) endGame(who === "you");
   }
@@ -118,6 +122,9 @@
       bounce(game.player.y, 1);
       countRally();
       PP.sfx("pick");
+      PP.juice.burstOn(canvas, ball.x, ball.y, "#22d3ee", 8, 40);
+      PP.juice.bump(rallyEl);
+      PP.juice.haptic(6);
     }
 
     var right = W - PADDLE_X - PADDLE_W;
@@ -132,6 +139,8 @@
       bounce(game.cpu.y, -1);
       countRally();
       PP.sfx("pick");
+      PP.juice.burstOn(canvas, ball.x, ball.y, "#f472b6", 8, 40);
+      PP.juice.shake(stageEl, 2);
     }
   }
 
@@ -222,6 +231,22 @@
     else ctx.rect(rightX, game.cpu.y, PADDLE_W, PADDLE_H);
     ctx.fill();
     ctx.restore();
+
+    // Motion trail
+    for (var t = 4; t >= 1; t--) {
+      ctx.globalAlpha = 0.075 * (5 - t);
+      ctx.fillStyle = "#a5f3fc";
+      ctx.beginPath();
+      ctx.arc(
+        game.ball.x - game.ball.dx * t * 0.55,
+        game.ball.y - game.ball.dy * t * 0.55,
+        BALL_R * (1 - t * 0.14),
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
 
     // Ball
     ctx.save();

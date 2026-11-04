@@ -18,6 +18,7 @@
 
   var canvas = document.getElementById("board");
   var ctx = PP.fitCanvas(canvas, W, H);
+  var stageEl = document.querySelector(".stage");
   var overlay = document.getElementById("overlay");
   var scoreEl = document.getElementById("score");
   var remainingEl = document.getElementById("remaining");
@@ -94,6 +95,8 @@
     game.lives--;
     paintHud();
     PP.sfx("bad");
+    PP.juice.shake(stageEl, 9);
+    PP.juice.haptic([25, 50, 25]);
     if (game.lives <= 0) {
       endGame(false);
       return;
@@ -171,6 +174,10 @@
       game.score += 10;
       paintHud();
       PP.sfx("good");
+      PP.juice.burstOn(canvas, cx, cy, brick.color, 9, 44);
+      PP.juice.shake(stageEl, 2.5);
+      PP.juice.bump(scoreEl);
+      PP.juice.haptic(6);
       break;
     }
 
@@ -252,6 +259,22 @@
     roundRect(game.paddleX, PADDLE_Y, PADDLE_W, PADDLE_H, 7);
     ctx.fill();
     ctx.restore();
+
+    // Motion trail
+    for (var t = 4; t >= 1; t--) {
+      ctx.globalAlpha = 0.085 * (5 - t);
+      ctx.fillStyle = "#a5f3fc";
+      ctx.beginPath();
+      ctx.arc(
+        game.ball.x - game.ball.dx * t * 0.6,
+        game.ball.y - game.ball.dy * t * 0.6,
+        BALL_R * (1 - t * 0.13),
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
 
     // Ball
     ctx.save();
