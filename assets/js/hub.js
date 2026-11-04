@@ -5,12 +5,14 @@
   var LABELS = {
     snake: function (v) { return "Best " + PP.formatNumber(v); },
     "2048": function (v) { return "Best " + PP.formatNumber(v); },
-    memory: function (v) { return "Fewest moves " + PP.formatNumber(v); },
     breakout: function (v) { return "Best " + PP.formatNumber(v); },
+    pong: function (v) { return "Best rally " + PP.formatNumber(v) + " hits"; },
+    memory: function (v) { return "Fewest moves " + PP.formatNumber(v); },
+    simon: function (v) { return "Best " + PP.formatNumber(v) + " rounds"; },
+    minesweeper: function (v) { return "Fastest " + PP.formatNumber(v) + "s"; },
     reaction: function (v) { return "Best avg " + PP.formatNumber(v) + " ms"; },
   };
 
-  var bests = PP.scores.all();
   var badges = document.querySelectorAll("[data-best]");
 
   Array.prototype.forEach.call(badges, function (el) {
@@ -26,8 +28,8 @@
     el.removeAttribute("data-empty");
   });
 
-  // Hero stat: the single biggest "score-like" number on the device.
-  var numeric = ["snake", "2048", "breakout"]
+  // Hero stat: the single biggest score-like number on the device.
+  var numeric = ["snake", "2048", "breakout", "pong"]
     .map(function (id) { return PP.scores.get(id); })
     .filter(function (v) { return typeof v === "number"; });
 

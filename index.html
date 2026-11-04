@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pixel Playground — five tiny games, zero downloads</title>
-  <meta name="description" content="A tiny arcade of five browser games: Snake, 2048, Memory Match, Breakout and Reaction Test. Keyboard and touch friendly, no ads, no sign-up." />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Pixel Playground — eight tiny games, zero downloads</title>
+  <meta name="description" content="A tiny arcade of eight browser games: Snake, 2048, Breakout, Pong, Memory Match, Simon, Minesweeper and a Reaction Test. Built for phones, keyboards and fullscreen play." />
   <meta name="theme-color" content="#070912" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta property="og:title" content="Pixel Playground" />
-  <meta property="og:description" content="Five tiny browser games. No downloads, no ads, no sign-up." />
+  <meta property="og:description" content="Eight tiny browser games. No downloads, no ads, no sign-up." />
   <meta property="og:type" content="website" />
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
@@ -29,18 +29,19 @@
 
   <main>
     <section class="hero">
-      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Five games · no downloads</p>
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Eight games · tap to play</p>
       <h1>Play something <span class="grad">fun</span>.</h1>
       <p class="lede">
-        A pocket arcade that loads instantly and works with a keyboard, a mouse or
-        your thumb. Beat your own records — they stick around on this device.
+        A pocket arcade that loads instantly, plays with one thumb, and goes
+        fullscreen when you want the whole screen. Beat your own records — they
+        stick around on this device.
       </p>
       <div class="hero-actions">
         <a class="btn" href="#games">Pick a game</a>
         <a class="btn ghost" href="games/snake.html">Play Snake →</a>
       </div>
       <div class="stats">
-        <div class="stat"><b>5</b><span>games</span></div>
+        <div class="stat"><b>8</b><span>games</span></div>
         <div class="stat"><b>0</b><span>ads, ever</span></div>
         <div class="stat"><b>1</b><span>page load</span></div>
         <div class="stat"><b id="statBest">—</b><span>best score</span></div>
@@ -70,6 +71,22 @@
           <span class="card-best" data-best="2048">No score yet</span>
         </a>
 
+        <a class="card" href="games/breakout.html" style="--accent:#f472b6">
+          <span class="card-play" aria-hidden="true">Play →</span>
+          <span class="card-icon" aria-hidden="true">🧱</span>
+          <h3>Breakout</h3>
+          <p>Bounce the ball, clear the wall, keep it off the floor. Three lives, no mercy.</p>
+          <span class="card-best" data-best="breakout">No score yet</span>
+        </a>
+
+        <a class="card" href="games/pong.html" style="--accent:#38bdf8">
+          <span class="card-play" aria-hidden="true">Play →</span>
+          <span class="card-icon" aria-hidden="true">🏓</span>
+          <h3>Pong</h3>
+          <p>First to seven against the computer. Drag with a finger, a mouse or the arrows.</p>
+          <span class="card-best" data-best="pong">No score yet</span>
+        </a>
+
         <a class="card" href="games/memory.html" style="--accent:#22d3ee">
           <span class="card-play" aria-hidden="true">Play →</span>
           <span class="card-icon" aria-hidden="true">🃏</span>
@@ -78,12 +95,20 @@
           <span class="card-best" data-best="memory">No score yet</span>
         </a>
 
-        <a class="card" href="games/breakout.html" style="--accent:#f472b6">
+        <a class="card" href="games/simon.html" style="--accent:#a78bfa">
           <span class="card-play" aria-hidden="true">Play →</span>
-          <span class="card-icon" aria-hidden="true">🧱</span>
-          <h3>Breakout</h3>
-          <p>Bounce the ball, clear the wall, keep it off the floor. Three lives, no mercy.</p>
-          <span class="card-best" data-best="breakout">No score yet</span>
+          <span class="card-icon" aria-hidden="true">🎵</span>
+          <h3>Simon</h3>
+          <p>Watch the colour sequence, then play it back. One more step every round.</p>
+          <span class="card-best" data-best="simon">No score yet</span>
+        </a>
+
+        <a class="card" href="games/minesweeper.html" style="--accent:#fb923c">
+          <span class="card-play" aria-hidden="true">Play →</span>
+          <span class="card-icon" aria-hidden="true">💣</span>
+          <h3>Minesweeper</h3>
+          <p>Nine by nine, ten mines. Tap to clear, long-press or right-click to flag.</p>
+          <span class="card-best" data-best="minesweeper">No score yet</span>
         </a>
 
         <a class="card" href="games/reaction.html" style="--accent:#8b5cf6">
@@ -102,8 +127,10 @@
       </div>
       <p class="lede" style="margin-top:0">
         Everything here is plain HTML, CSS and JavaScript — no frameworks, no trackers,
-        no network calls after the page loads. High scores are saved in your browser's
-        local storage, so they stay on the device you play on.
+        no network calls after the page loads. Every game is built for thumbs first,
+        locks text selection while you play, and has a <b>⛶</b> button that takes it
+        fullscreen. High scores are saved in your browser's local storage, so they stay
+        on the device you play on.
       </p>
     </section>
   </main>
