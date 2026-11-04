@@ -69,6 +69,23 @@
     blackout: { label: "Blackout", mode: "high", unit: " boards" },
   };
 
+  /**
+   * Score metadata for any game id: the hand-written eleven first, then the
+   * generated catalogue (games-data.js, which loads after this file).
+   */
+  function gameMeta(id) {
+    if (GAME_META[id]) return GAME_META[id];
+    var entry = window.PP_GAME_BY_ID ? window.PP_GAME_BY_ID[id] : null;
+    return entry ? { label: entry.title, mode: entry.mode, unit: entry.unit } : null;
+  }
+
+  function catalogueIds() {
+    if (window.PP_GAMES && window.PP_GAMES.length) {
+      return window.PP_GAMES.map(function (game) { return game.id; });
+    }
+    return Object.keys(GAME_META);
+  }
+
   var lastRun = null;
 
   /** Which game page are we on? Returns null on the hub and the board page. */
@@ -86,15 +103,15 @@
     var data = readJSON(BOARD_KEY, []);
     if (!Array.isArray(data)) return [];
     return data.filter(function (run) {
-      return run && typeof run.game === "string" && GAME_META[run.game] &&
+      return run && typeof run.game === "string" && gameMeta(run.game) &&
         typeof run.score === "number" && isFinite(run.score);
     });
   }
 
   var leaderboard = {
-    games: function () { return Object.keys(GAME_META); },
+    games: function () { return catalogueIds(); },
 
-    meta: function (id) { return GAME_META[id] || null; },
+    meta: function (id) { return gameMeta(id); },
 
     player: function () {
       try {
@@ -114,7 +131,7 @@
 
     /** All runs for one game, best first. */
     runs: function (id) {
-      var meta = GAME_META[id];
+      var meta = gameMeta(id);
       if (!meta) return [];
       return readRuns()
         .filter(function (run) { return run.game === id; })
@@ -134,7 +151,7 @@
 
     /** "1,240 pts" — ready to print. */
     describe: function (id, value) {
-      var meta = GAME_META[id];
+      var meta = gameMeta(id);
       return formatNumber(value) + (meta ? meta.unit : "");
     },
 
@@ -143,7 +160,7 @@
      * can tell the player where they landed.
      */
     submit: function (id, score) {
-      var meta = GAME_META[id];
+      var meta = gameMeta(id);
       if (!meta) return null;
       if (typeof score !== "number" || !isFinite(score)) return null;
 
@@ -170,7 +187,7 @@
       var trimmed = [];
       var total = 0;
       Object.keys(grouped).forEach(function (key) {
-        var mode = GAME_META[key].mode;
+        var mode = gameMeta(key).mode;
         grouped[key].sort(function (a, b) { return runComp(a, b, mode); });
         var keep = grouped[key].slice(0, RUNS_PER_GAME);
         if (key === id) total = keep.length;
@@ -614,6 +631,406 @@
       rect.top - hostRect.top + y * scale, color, count, spread);
   }
 
+  /* ------------------------------------------------------------------ music */
+
+  /*
+   * A small procedural loop — no audio files, no network. Four bars of a slow
+   * minor progression over a soft kick, hats, bass and arpeggio. Browsers only
+   * allow audio after a gesture, so the loop arms itself and starts on the first
+   * tap or key press. The ♫ button in the header turns it off for good.
+   */
+
+  var MUSIC_KEY = "pixel-playground:music";
+  var MUSIC_GAIN = 0.5;
+  var BPM = 92;
+  var STEP = 60 / BPM / 4;
+  var PROGRESSION = [
+    { pad: [57, 60, 64, 67], bass: 45 },
+    { pad: [53, 57, 60, 64], bass: 41 },
+    { pad: [48, 55, 60, 64], bass: 36 },
+    { pad: [55, 59, 62, 67], bass: 43 },
+  ];
+  var ARP = [0, 2, 1, 3, 2, 3, 1, 0];
+
+  var music = {
+    enabled: true,
+    started: false,
+    gain: null,
+    timer: null,
+    step: 0,
+    next: 0,
+    noise: null,
+  };
+
+  function musicPref() {
+    try { return localStorage.getItem(MUSIC_KEY) !== "0"; } catch (err) { return true; }
+  }
+
+  function hz(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
+
+  function musicBus() {
+    var ctx = context();
+    if (!ctx) return null;
+    if (!music.gain) {
+      music.gain = ctx.createGain();
+      music.gain.gain.value = MUSIC_GAIN;
+      music.gain.connect(ctx.destination);
+    }
+    return ctx;
+  }
+
+  function noiseBuffer(ctx) {
+    if (music.noise) return music.noise;
+    var length = Math.floor(ctx.sampleRate * 0.35);
+    var buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / length);
+    }
+    music.noise = buffer;
+    return buffer;
+  }
+
+  function voice(freq, at, dur, type, level) {
+    var ctx = context();
+    if (!ctx || !music.gain) return;
+    try {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, at);
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(level, at + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      osc.connect(gain).connect(music.gain);
+      osc.start(at);
+      osc.stop(at + dur + 0.05);
+    } catch (err) { /* ignore */ }
+  }
+
+  function thump(at) {
+    var ctx = context();
+    if (!ctx || !music.gain) return;
+    try {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(132, at);
+      osc.frequency.exponentialRampToValueAtTime(46, at + 0.17);
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(0.16, at + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.22);
+      osc.connect(gain).connect(music.gain);
+      osc.start(at);
+      osc.stop(at + 0.26);
+    } catch (err) { /* ignore */ }
+  }
+
+  function hiss(at, level) {
+    var ctx = context();
+    if (!ctx || !music.gain) return;
+    try {
+      var src = ctx.createBufferSource();
+      src.buffer = noiseBuffer(ctx);
+      var filter = ctx.createBiquadFilter();
+      filter.type = "highpass";
+      filter.frequency.value = 6200;
+      var gain = ctx.createGain();
+      gain.gain.setValueAtTime(level, at);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.07);
+      src.connect(filter).connect(gain).connect(music.gain);
+      src.start(at);
+      src.stop(at + 0.12);
+    } catch (err) { /* ignore */ }
+  }
+
+  function playStep(step, at) {
+    var bar = Math.floor(step / 16) % PROGRESSION.length;
+    var chord = PROGRESSION[bar];
+    var pos = step % 16;
+
+    if (pos === 0) {
+      for (var i = 0; i < chord.pad.length; i++) {
+        voice(hz(chord.pad[i]), at, STEP * 14, "sine", 0.016);
+      }
+    }
+    if (pos === 0 || pos === 6 || pos === 10) voice(hz(chord.bass), at, STEP * 4, "triangle", 0.05);
+    if (pos === 14) voice(hz(chord.bass + 12), at, STEP * 2, "triangle", 0.028);
+    if (pos % 2 === 0) {
+      var note = chord.pad[ARP[pos / 2] % chord.pad.length] + 12;
+      voice(hz(note), at, STEP * 1.5, "square", 0.01);
+    }
+    if (pos === 0 || pos === 8) thump(at);
+    if (pos === 4 || pos === 12) hiss(at, 0.05);
+    if (pos % 2 === 1) hiss(at, 0.016);
+  }
+
+  function pumpMusic() {
+    var ctx = musicBus();
+    if (!ctx || !music.started) return;
+    if (!music.enabled || isMuted() || ctx.state === "suspended") {
+      music.next = ctx.currentTime + 0.1;
+      return;
+    }
+    var now = ctx.currentTime;
+    if (music.next < now) music.next = now + 0.05;
+    var guard = 0;
+    while (music.next < now + 0.35 && guard < 24) {
+      playStep(music.step, music.next);
+      music.next += STEP;
+      music.step = (music.step + 1) % 64;
+      guard++;
+    }
+  }
+
+  function startMusic() {
+    if (!music.enabled || music.started) return;
+    var ctx = musicBus();
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      try { ctx.resume(); } catch (err) { /* ignore */ }
+    }
+    if (ctx.state !== "running") return;
+    music.started = true;
+    music.next = ctx.currentTime + 0.1;
+    if (!music.timer) music.timer = window.setInterval(pumpMusic, 60);
+  }
+
+  function stopMusic() {
+    music.started = false;
+    if (music.timer) {
+      window.clearInterval(music.timer);
+      music.timer = null;
+    }
+    if (music.gain) {
+      try { music.gain.disconnect(); } catch (err) { /* ignore */ }
+      music.gain = null;
+    }
+  }
+
+  function setMusicPref(on) {
+    music.enabled = !!on;
+    try { localStorage.setItem(MUSIC_KEY, on ? "1" : "0"); } catch (err) { /* ignore */ }
+    if (on) startMusic(); else stopMusic();
+    paintMusicButton();
+    return music.enabled;
+  }
+
+  function paintMusicButton() {
+    var buttons = document.querySelectorAll("[data-music]");
+    Array.prototype.forEach.call(buttons, function (btn) {
+      var off = !music.enabled;
+      btn.textContent = "♫";
+      btn.classList.toggle("is-off", off);
+      btn.setAttribute("aria-pressed", off ? "false" : "true");
+      btn.setAttribute("aria-label", off ? "Turn music on" : "Turn music off");
+      btn.title = off ? "Music off" : "Music on";
+    });
+  }
+
+  function mountMusicButton() {
+    music.enabled = musicPref();
+    if (!document.querySelector("[data-music]")) {
+      var host = document.querySelector(".head-links") || document.querySelector(".game-head");
+      if (host) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "icon-btn music-btn";
+        btn.setAttribute("data-music", "");
+        btn.addEventListener("click", function () {
+          if (music.enabled) {
+            setMusicPref(false);
+            beep("pick");
+          } else {
+            setMusicPref(true);
+            if (music.started) beep("good");
+          }
+          paintMusicButton();
+        });
+        host.appendChild(btn);
+      }
+    }
+    paintMusicButton();
+
+    if (!music.enabled) return;
+    ["pointerdown", "keydown", "touchstart"].forEach(function (name) {
+      window.addEventListener(name, function () { startMusic(); }, { once: true, passive: true });
+    });
+  }
+
+  /* -------------------------------------------------------------- accounts */
+
+  /*
+   * Device profiles, not real authentication: a name, a salted hash of a PIN
+   * and a session flag, all in localStorage. Nothing leaves the browser and the
+   * PIN only keeps friends on the same phone from inheriting your board.
+   */
+
+  var ACCOUNT_KEY = "pixel-playground:accounts";
+  var SESSION_KEY = "pixel-playground:session";
+  var AVATARS = ["🦊", "🐙", "🦄", "🐳", "🦉", "🐝", "🦖", "🐧", "🦋", "🐢", "🦁", "🐼"];
+
+  function hashPin(pin, salt) {
+    var text = salt + "|" + pin + "|pixel-playground";
+    var a = 0x811c9dc5;
+    var b = 0x1000193;
+    for (var i = 0; i < text.length; i++) {
+      a ^= text.charCodeAt(i);
+      a = Math.imul(a, 0x01000193) >>> 0;
+      b = (Math.imul(b, 0x85ebca6b) + text.charCodeAt(i)) >>> 0;
+    }
+    return a.toString(16) + b.toString(16);
+  }
+
+  function readAccounts() {
+    var list = readJSON(ACCOUNT_KEY, []);
+    return Array.isArray(list) ? list.filter(function (item) { return item && item.name; }) : [];
+  }
+
+  function findAccount(name) {
+    var wanted = String(name || "").toLowerCase();
+    var accounts = readAccounts();
+    for (var i = 0; i < accounts.length; i++) {
+      if (accounts[i].name.toLowerCase() === wanted) return accounts[i];
+    }
+    return null;
+  }
+
+  function avatarFor(name) {
+    var account = findAccount(name);
+    if (account && account.avatar) return account.avatar;
+    var text = String(name || "Player");
+    var seed = 0;
+    for (var i = 0; i < text.length; i++) seed = (seed * 31 + text.charCodeAt(i)) >>> 0;
+    return AVATARS[seed % AVATARS.length];
+  }
+
+  var auth = {
+    accounts: function () {
+      return readAccounts().map(function (account) {
+        return { name: account.name, avatar: account.avatar || avatarFor(account.name), created: account.created };
+      });
+    },
+
+    current: function () {
+      var name = null;
+      try { name = localStorage.getItem(SESSION_KEY); } catch (err) { return null; }
+      if (!name) return null;
+      var account = findAccount(name);
+      if (!account) return null;
+      return { name: account.name, avatar: account.avatar || avatarFor(account.name), created: account.created };
+    },
+
+    avatar: avatarFor,
+
+    signUp: function (name, pin) {
+      var clean = String(name || "").replace(/\s+/g, " ").trim().slice(0, 14);
+      if (clean.length < 2) return { ok: false, error: "Pick a name of at least two characters." };
+      if (!/^\d{4,8}$/.test(String(pin || ""))) return { ok: false, error: "The PIN needs 4 to 8 digits." };
+      if (findAccount(clean)) return { ok: false, error: "That name is already taken on this device." };
+      var accounts = readAccounts();
+      if (accounts.length >= 12) return { ok: false, error: "This device already has twelve accounts." };
+      var salt = Math.random().toString(36).slice(2, 10);
+      var account = {
+        name: clean,
+        salt: salt,
+        hash: hashPin(String(pin), salt),
+        avatar: avatarFor(clean),
+        created: Date.now(),
+      };
+      accounts.push(account);
+      writeJSON(ACCOUNT_KEY, accounts);
+      auth.enter(clean);
+      return { ok: true, account: { name: clean, avatar: account.avatar, created: account.created } };
+    },
+
+    signIn: function (name, pin) {
+      var account = findAccount(String(name || "").trim());
+      if (!account) return { ok: false, error: "No account with that name on this device." };
+      if (account.hash !== hashPin(String(pin || ""), account.salt)) {
+        return { ok: false, error: "That PIN does not match " + account.name + "." };
+      }
+      auth.enter(account.name);
+      return { ok: true, account: { name: account.name, avatar: account.avatar, created: account.created } };
+    },
+
+    enter: function (name) {
+      try { localStorage.setItem(SESSION_KEY, name); } catch (err) { /* ignore */ }
+      leaderboard.setPlayer(name);
+      paintAccountChip();
+      return name;
+    },
+
+    signOut: function () {
+      try { localStorage.removeItem(SESSION_KEY); } catch (err) { /* ignore */ }
+      paintAccountChip();
+    },
+
+    /** Every run filed under one name (or the current player's name). */
+    runs: function (name) {
+      var who = String(name || (auth.current() || {}).name || leaderboard.player()).toLowerCase();
+      return readRuns()
+        .filter(function (run) { return String(run.player || "").toLowerCase() === who; })
+        .sort(function (a, b) { return b.at - a.at; });
+    },
+
+    /** Totals plus the best run per game for one player. */
+    stats: function (name) {
+      var runs = auth.runs(name);
+      var bests = {};
+      runs.forEach(function (run) {
+        var meta = gameMeta(run.game);
+        if (!meta) return;
+        var current = bests[run.game];
+        if (!current) { bests[run.game] = { game: run.game, score: run.score, at: run.at }; return; }
+        var better = meta.mode === "low" ? run.score < current.score : run.score > current.score;
+        if (better) { bests[run.game] = { game: run.game, score: run.score, at: run.at }; }
+      });
+      var list = Object.keys(bests).map(function (id) {
+        var meta = gameMeta(id) || { label: id, unit: "" };
+        return {
+          game: id,
+          label: meta.label,
+          unit: meta.unit,
+          score: bests[id].score,
+          at: bests[id].at,
+        };
+      });
+      list.sort(function (a, b) { return a.label.localeCompare(b.label); });
+      return {
+        runs: runs.length,
+        games: list.length,
+        bests: list,
+        recent: runs.slice(0, 12),
+      };
+    },
+  };
+
+  function paintAccountChip() {
+    var hosts = document.querySelectorAll(".head-links, .game-head");
+    var me = auth.current();
+    var inGames = /\/games\//.test(window.location.pathname || "");
+    Array.prototype.forEach.call(hosts, function (host) {
+      var chip = host.querySelector("[data-account]");
+      if (!chip) {
+        chip = document.createElement("a");
+        chip.className = "account-chip";
+        chip.setAttribute("data-account", "");
+        host.appendChild(chip);
+      }
+      chip.href = (inGames ? "../" : "") + "account.html";
+      if (me) {
+        chip.innerHTML = '<span class="avatar" aria-hidden="true">' + me.avatar + "</span>" +
+          '<span class="account-name">' + escapeHtml(me.name) + "</span>";
+        chip.title = "Signed in as " + me.name + " — open your account";
+      } else {
+        chip.innerHTML = '<span class="avatar" aria-hidden="true">👤</span>' +
+          '<span class="account-name">Sign in</span>';
+        chip.title = "Create or sign in to a device account";
+      }
+    });
+  }
+
   window.PP = {
     juice: {
       haptic: haptic,
@@ -627,6 +1044,14 @@
     leaderboard: leaderboard,
     sfx: beep,
     tone: tone,
+    music: {
+      start: startMusic,
+      stop: stopMusic,
+      set: setMusicPref,
+      on: function () { return music.enabled; },
+    },
+    auth: auth,
+    avatar: avatarFor,
     muted: isMuted,
     fitCanvas: fitCanvas,
     formatNumber: formatNumber,
@@ -638,10 +1063,24 @@
     setupFullscreen: setupFullscreen,
   };
 
+  /* The refresh theme is linked by the newer pages; the eleven original
+     cabinets predate it, so give them the same palette at boot. */
+  function loadTheme() {
+    if (document.querySelector('link[href*="refresh.css"]')) return;
+    var inGames = /\/games\//.test(window.location.pathname || "");
+    var link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = (inGames ? "../" : "") + "assets/css/refresh.css";
+    document.head.appendChild(link);
+  }
+
   function boot() {
     bindMuteButton();
     setupFullscreen();
     lockSurfaces();
+    mountMusicButton();
+    paintAccountChip();
+    loadTheme();
   }
 
   if (document.readyState === "loading") {
