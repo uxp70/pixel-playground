@@ -26,11 +26,22 @@
 
 * { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+/* This is a game pad, not a document: nothing on the page is selectable. */
+html,
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
 
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
   font-family: var(--font);
   color: var(--ink);
   background: radial-gradient(120% 80% at 50% -10%, #1b1f3d 0%, var(--bg) 55%) fixed,
@@ -38,6 +49,14 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+body.is-fullscreen,
+html.is-fullscreen {
+  overflow: hidden;
 }
 
 /* Soft colour orbs behind everything ------------------------------------- */
@@ -367,7 +386,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 22px 72px; }
 .game-head {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
   max-width: 780px;
   margin: 0 auto;
@@ -391,9 +410,13 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 22px 72px; }
 .back:hover { color: var(--ink); background: rgba(255, 255, 255, 0.09); }
 
 .game-title {
+  min-width: 0;
+  margin-right: auto;
   font-size: 1rem;
   font-weight: 800;
-  margin-right: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chip {
@@ -458,13 +481,23 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 22px 72px; }
 
 canvas { display: block; width: 100%; height: auto; touch-action: none; }
 
+/* Boards own their gestures so a swipe never scrolls the page. */
+.stage,
+.board2048,
+.memory-board,
+.simon-board,
+.mine-board {
+  touch-action: none;
+}
+
 .hud {
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
-.hud .chip { flex: 1; justify-content: center; }
+.hud .chip { flex: 1 1 0; justify-content: center; min-width: 0; }
 .hud .chip b { font-size: 1.05rem; }
 
 .hint {
@@ -525,22 +558,26 @@ kbd {
 
 /* On-screen d-pad for touch devices -------------------------------------- */
 .dpad {
+  --dpad-size: clamp(56px, 17vw, 68px);
   display: none;
-  grid-template-columns: repeat(3, 58px);
-  grid-template-rows: repeat(2, 58px);
-  gap: 8px;
+  grid-template-columns: repeat(3, var(--dpad-size));
+  grid-template-rows: repeat(2, var(--dpad-size));
+  gap: 10px;
   justify-content: center;
+  flex: 0 0 auto;
+  touch-action: none;
 }
 .dpad button {
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 18px;
   background: var(--panel);
   color: var(--ink);
-  font-size: 1.15rem;
+  font-size: 1.3rem;
   cursor: pointer;
-  touch-action: manipulation;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .dpad button:active { background: rgba(255, 255, 255, 0.16); transform: scale(0.96); }
 .dpad .up { grid-column: 2; grid-row: 1; }
@@ -751,6 +788,222 @@ kbd {
 
 .lives { display: inline-flex; gap: 4px; letter-spacing: 0.1em; }
 
+/* ==========================================================================
+   Fullscreen player
+   ========================================================================== */
+
+.game-main:fullscreen,
+.game-main.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  justify-content: center;
+  gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
+    calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
+  background:
+    radial-gradient(120% 80% at 50% 0%, #161b36 0%, #070912 62%),
+    #070912;
+  overflow: hidden;
+}
+.game-main.is-fullscreen { display: flex; }
+
+.game-main:fullscreen .hint,
+.game-main.is-fullscreen .hint { display: none; }
+
+.game-main:fullscreen .hud,
+.game-main.is-fullscreen .hud {
+  flex: 0 0 auto;
+  width: min(100%, 560px);
+}
+.game-main:fullscreen .hud .chip,
+.game-main.is-fullscreen .hud .chip { flex: 0 1 auto; padding: 6px 12px; }
+
+.game-main:fullscreen .stage,
+.game-main.is-fullscreen .stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: none !important;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: none !important;
+  overflow: visible;
+}
+
+.game-main:fullscreen canvas,
+.game-main.is-fullscreen canvas {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 14px;
+}
+
+.game-main:fullscreen .board2048,
+.game-main:fullscreen .memory-board,
+.game-main:fullscreen .simon-board,
+.game-main.is-fullscreen .board2048,
+.game-main.is-fullscreen .memory-board,
+.game-main.is-fullscreen .simon-board {
+  width: min(100%, 58dvh);
+  height: auto;
+}
+
+.game-main:fullscreen .mine-board,
+.game-main.is-fullscreen .mine-board {
+  width: min(100%, 92vw);
+  height: auto;
+  max-height: 100%;
+}
+
+.game-main:fullscreen .reaction-pad,
+.game-main.is-fullscreen .reaction-pad {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.game-main:fullscreen .rounds,
+.game-main.is-fullscreen .rounds {
+  flex: 0 0 auto;
+  width: min(100%, 560px);
+}
+
+.game-main:fullscreen .dpad,
+.game-main.is-fullscreen .dpad { flex: 0 0 auto; }
+
+.game-main:fullscreen .game-tools,
+.game-main.is-fullscreen .game-tools { flex: 0 0 auto; width: auto; }
+
+/* Floating exit control, since the page header is hidden in real fullscreen. */
+.fs-exit { display: none; }
+.game-main:fullscreen .fs-exit,
+.game-main.is-fullscreen .fs-exit {
+  display: grid;
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top));
+  right: calc(8px + env(safe-area-inset-right));
+  z-index: 30;
+  width: 42px;
+  height: 42px;
+  background: rgba(12, 15, 30, 0.75);
+  backdrop-filter: blur(8px);
+}
+
+/* ==========================================================================
+   Simon
+   ========================================================================== */
+
+.simon-board {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(8px, 2.4vw, 14px);
+  width: min(100%, 460px);
+  aspect-ratio: 1;
+  padding: clamp(8px, 2.2vw, 14px);
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background: #0b0e1c;
+  box-shadow: var(--shadow);
+}
+
+.simon-pad {
+  border: 0;
+  border-radius: 18px;
+  cursor: pointer;
+  opacity: 0.38;
+  transition: opacity 0.1s ease, transform 0.1s ease, box-shadow 0.14s ease, filter 0.14s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+.simon-pad[data-color="green"]  { background: #22c55e; color: #22c55e; }
+.simon-pad[data-color="red"]    { background: #ef4444; color: #ef4444; }
+.simon-pad[data-color="yellow"] { background: #eab308; color: #eab308; }
+.simon-pad[data-color="blue"]   { background: #3b82f6; color: #3b82f6; }
+.simon-pad.is-lit {
+  opacity: 1;
+  transform: scale(0.97);
+  filter: brightness(1.3);
+  box-shadow: 0 0 46px -8px currentColor;
+}
+.simon-pad:disabled { cursor: default; }
+
+.simon-status {
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-align: center;
+  min-height: 1.4em;
+}
+.simon-status[data-tone="go"] { color: var(--green); }
+.simon-status[data-tone="bad"] { color: var(--pink); }
+
+/* ==========================================================================
+   Minesweeper
+   ========================================================================== */
+
+.mine-board {
+  --cols: 9;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  gap: 4px;
+  width: min(100%, 440px);
+  aspect-ratio: 1;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #0b0e1c;
+  box-shadow: var(--shadow);
+}
+
+.mine-tile {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: clamp(0.68rem, 2.7vw, 1rem);
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  transition: background 0.1s ease;
+}
+.mine-tile:hover { background: rgba(255, 255, 255, 0.16); }
+.mine-tile[data-state="revealed"] {
+  background: rgba(255, 255, 255, 0.03);
+  cursor: default;
+}
+.mine-tile[data-state="flagged"] { background: rgba(244, 114, 182, 0.24); }
+.mine-tile[data-state="mine"] { background: #be123c; }
+.mine-tile[data-state="wrong"] { background: rgba(239, 68, 68, 0.25); }
+.mine-tile[data-n="1"] { color: #60a5fa; }
+.mine-tile[data-n="2"] { color: #34d399; }
+.mine-tile[data-n="3"] { color: #fbbf24; }
+.mine-tile[data-n="4"] { color: #f472b6; }
+.mine-tile[data-n="5"] { color: #fb923c; }
+.mine-tile[data-n="6"] { color: #22d3ee; }
+.mine-tile[data-n="7"] { color: #c084fc; }
+.mine-tile[data-n="8"] { color: #e5e7eb; }
+
+.mode-toggle[aria-pressed="true"] {
+  color: #07080f;
+  background: linear-gradient(100deg, var(--cyan), #a78bfa);
+  border-color: transparent;
+  box-shadow: 0 10px 24px -14px var(--cyan);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
@@ -763,8 +1016,27 @@ kbd {
   .hero { padding: 46px 0 34px; }
   .stats { gap: 22px; }
   .head-links { display: none; }
-  .game-head { padding: 16px 14px 0; gap: 8px; }
-  .game-title { font-size: 0.9rem; }
-  .chip { padding: 7px 11px; }
-  .game-main { padding: 16px 14px 48px; }
+  .game-head { padding: 16px 12px 0; gap: 6px; }
+  .game-title { font-size: 0.86rem; }
+  .chip { padding: 7px 10px; font-size: 0.66rem; letter-spacing: 0.04em; }
+  .chip b { font-size: 0.86rem; }
+  .back { padding: 9px 12px; font-size: 0.78rem; }
+  .icon-btn { width: 34px; height: 34px; }
+  .game-main { padding: 14px 12px 40px; gap: 12px; }
+  .hud .chip { padding: 7px 8px; }
+  .overlay { padding: 18px; }
+  .overlay .actions .btn { padding: 12px 18px; }
+  .dpad { --dpad-size: clamp(58px, 18vw, 70px); }
+}
+
+/* Short viewports (landscape phones) — keep boards on screen. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .game-main { padding-top: 10px; gap: 10px; }
+  .game-head { padding-top: 10px; }
+  .stage { max-height: calc(100dvh - 96px); }
+  .dpad { --dpad-size: 48px; grid-template-rows: repeat(2, 48px); }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .site-foot a { padding: 6px 0; }
 }
