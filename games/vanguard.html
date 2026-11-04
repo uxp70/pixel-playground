@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vector Vanguard — Pixel Playground</title>
+  <meta name="description" content="A twin-stick arena shooter against five kinds of drone. Dash, fire, survive ten waves." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Vector Vanguard</span>
+    <span class="chip">Best <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Score <b id="hudA">0</b></span>
+      <span class="chip">Wave <b id="hudB">1</b></span>
+      <span class="chip">Shells <b id="hudC">5</b></span>
+      <button class="icon-btn" type="button" data-dash aria-label="Dash">⚡</button>
+    </div>
+
+    <div class="stage" style="max-width:960px">
+      <canvas id="board" width="960" height="560" role="img"
+              aria-label="Arena with your ship and approaching drones"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <div class="dpad" role="group" aria-label="Movement">
+      <button class="up" type="button" data-dir="up" aria-label="Move up">▲</button>
+      <button class="left" type="button" data-dir="left" aria-label="Move left">◀</button>
+      <button class="down" type="button" data-dir="down" aria-label="Move down">▼</button>
+      <button class="right" type="button" data-dir="right" aria-label="Move right">▶</button>
+    </div>
+
+    <p class="hint">
+      <kbd>WASD</kbd> / arrows to fly · you fire automatically at the nearest drone ·
+      <kbd>Space</kbd> or ⚡ to dash (brief invulnerability) · drag the arena on touch
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/games-data.js"></script>
+  <script src="../assets/js/originals.js"></script>
+  <script src="../assets/js/vanguard.js"></script>
+</body>
+</html>
