@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prism — Pixel Playground</title>
+  <meta name="description" content="Rotate mirrors to bend a laser into the gem. Five puzzles per run, as few rotations as you can manage." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Prism</span>
+    <span class="chip">Best <b id="best">—</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Puzzle <b id="puzzle">—</b></span>
+      <span class="chip">Rotations <b id="moves">0</b></span>
+    </div>
+
+    <div class="stage">
+      <canvas id="board" width="560" height="560" role="img" aria-label="Prism puzzle grid"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <p class="hint">
+      The pink beam fires from the left. Tap a mirror to flip it and steer the light
+      into the green gem — five puzzles, fewest rotations wins.
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/prism.js"></script>
+</body>
+</html>

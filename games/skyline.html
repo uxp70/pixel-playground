@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skyline — Pixel Playground</title>
+  <meta name="description" content="Drop sliding floors and stack a neon tower as high as you can. Perfect timing keeps the tower wide." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Skyline</span>
+    <span class="chip">Best <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Floors <b id="floors">0</b></span>
+      <span class="chip">Perfect streak <b id="streak">0</b></span>
+    </div>
+
+    <div class="stage">
+      <canvas id="board" width="560" height="640" role="img" aria-label="Skyline tower"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <p class="hint">
+      Tap, click or press <kbd>space</kbd> to drop the sliding floor. Land it dead on
+      to keep the full width — miss and the tower gets thinner.
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/skyline.js"></script>
+</body>
+</html>
