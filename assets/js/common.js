@@ -48,6 +48,152 @@
     },
   };
 
+  /* ------------------------------------------------------------ leaderboard */
+
+  var BOARD_KEY = "pixel-playground:board";
+  var PLAYER_KEY = "pixel-playground:player";
+  var RUNS_PER_GAME = 50;
+
+  /* Every game that files runs declares how its score reads and ranks. */
+  var GAME_META = {
+    skyline: { label: "Skyline", mode: "high", unit: " floors" },
+    snake: { label: "Snake", mode: "high", unit: " pts" },
+    "2048": { label: "2048", mode: "high", unit: " pts" },
+    breakout: { label: "Breakout", mode: "high", unit: " pts" },
+    pong: { label: "Pong", mode: "high", unit: " hits" },
+    memory: { label: "Memory Match", mode: "low", unit: " moves" },
+    simon: { label: "Simon", mode: "high", unit: " rounds" },
+    minesweeper: { label: "Minesweeper", mode: "low", unit: "s" },
+    reaction: { label: "Reaction Test", mode: "low", unit: " ms" },
+    prism: { label: "Prism", mode: "low", unit: " rotations" },
+    blackout: { label: "Blackout", mode: "high", unit: " boards" },
+  };
+
+  var lastRun = null;
+
+  /** Which game page are we on? Returns null on the hub and the board page. */
+  function pageGameId() {
+    var match = /\/games\/([a-z0-9-]+)\.html$/.exec(window.location.pathname || "");
+    return match ? match[1] : null;
+  }
+
+  function runComp(a, b, mode) {
+    if (a.score !== b.score) return mode === "low" ? a.score - b.score : b.score - a.score;
+    return a.at - b.at;
+  }
+
+  function readRuns() {
+    var data = readJSON(BOARD_KEY, []);
+    if (!Array.isArray(data)) return [];
+    return data.filter(function (run) {
+      return run && typeof run.game === "string" && GAME_META[run.game] &&
+        typeof run.score === "number" && isFinite(run.score);
+    });
+  }
+
+  var leaderboard = {
+    games: function () { return Object.keys(GAME_META); },
+
+    meta: function (id) { return GAME_META[id] || null; },
+
+    player: function () {
+      try {
+        var saved = localStorage.getItem(PLAYER_KEY);
+        if (saved) return saved;
+      } catch (err) { /* private mode — fall through */ }
+      return "Player 1";
+    },
+
+    /** Remember a handle for future runs. Returns the cleaned name. */
+    setPlayer: function (name) {
+      var clean = String(name == null ? "" : name).replace(/\s+/g, " ").trim().slice(0, 14);
+      if (!clean) clean = "Player 1";
+      try { localStorage.setItem(PLAYER_KEY, clean); } catch (err) { /* ignore */ }
+      return clean;
+    },
+
+    /** All runs for one game, best first. */
+    runs: function (id) {
+      var meta = GAME_META[id];
+      if (!meta) return [];
+      return readRuns()
+        .filter(function (run) { return run.game === id; })
+        .sort(function (a, b) { return runComp(a, b, meta.mode); });
+    },
+
+    top: function (id, count) {
+      return this.runs(id).slice(0, count || 10);
+    },
+
+    best: function (id) {
+      var runs = this.runs(id);
+      return runs.length ? runs[0].score : null;
+    },
+
+    count: function (id) { return this.runs(id).length; },
+
+    /** "1,240 pts" — ready to print. */
+    describe: function (id, value) {
+      var meta = GAME_META[id];
+      return formatNumber(value) + (meta ? meta.unit : "");
+    },
+
+    /**
+     * File one finished run and return { rank, total } so the game-over panel
+     * can tell the player where they landed.
+     */
+    submit: function (id, score) {
+      var meta = GAME_META[id];
+      if (!meta) return null;
+      if (typeof score !== "number" || !isFinite(score)) return null;
+
+      var entry = { game: id, score: score, player: this.player(), at: Date.now() };
+      var list = readRuns();
+
+      var rank = 1;
+      list.forEach(function (run) {
+        if (run.game !== id) return;
+        var ahead = run.score === score
+          ? run.at < entry.at
+          : (meta.mode === "low" ? run.score < score : run.score > score);
+        if (ahead) rank++;
+      });
+
+      list.push(entry);
+
+      // Keep the board small: the best runs per game survive the trim.
+      var grouped = {};
+      list.forEach(function (run) {
+        if (!grouped[run.game]) grouped[run.game] = [];
+        grouped[run.game].push(run);
+      });
+      var trimmed = [];
+      var total = 0;
+      Object.keys(grouped).forEach(function (key) {
+        var mode = GAME_META[key].mode;
+        grouped[key].sort(function (a, b) { return runComp(a, b, mode); });
+        var keep = grouped[key].slice(0, RUNS_PER_GAME);
+        if (key === id) total = keep.length;
+        trimmed = trimmed.concat(keep);
+      });
+      writeJSON(BOARD_KEY, trimmed);
+
+      lastRun = { game: id, score: score, rank: Math.min(rank, total), total: total };
+      return lastRun;
+    },
+
+    /** Clear one game's runs, or the whole board when id is omitted. */
+    clear: function (id) {
+      if (!id) {
+        writeJSON(BOARD_KEY, []);
+        return;
+      }
+      writeJSON(BOARD_KEY, readRuns().filter(function (run) { return run.game !== id; }));
+    },
+
+    lastRun: function () { return lastRun; },
+  };
+
   /* ------------------------------------------------------------------ audio */
 
   var audioCtx = null;
@@ -165,7 +311,18 @@
   /** Reveal an overlay element and set its contents. */
   function showOverlay(el, html) {
     if (!el) return;
-    el.innerHTML = '<div class="overlay-inner">' + html + "</div>";
+    var note = "";
+    var game = pageGameId();
+    if (lastRun && game && lastRun.game === game) {
+      note =
+        '<p class="lb-note">' +
+        (lastRun.rank === 1
+          ? "New #1 on this device"
+          : "#" + lastRun.rank + " of " + lastRun.total + " on this device") +
+        ' · <a href="../leaderboard.html?game=' + encodeURIComponent(game) +
+        '" style="color:#22d3ee;font-weight:700;text-decoration:none">Leaderboard →</a></p>';
+    }
+    el.innerHTML = '<div class="overlay-inner">' + html + note + "</div>";
     el.hidden = false;
   }
 
@@ -467,6 +624,7 @@
       burstOn: burstOn,
     },
     scores: scores,
+    leaderboard: leaderboard,
     sfx: beep,
     tone: tone,
     muted: isMuted,
