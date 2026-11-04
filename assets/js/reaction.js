@@ -78,6 +78,7 @@
       timer = null;
       goAt = performance.now();
       setPad("go", "TAP!", "Now!");
+      PP.juice.haptic(20);
       refreshHud();
     }, delay);
   }
@@ -87,6 +88,8 @@
     times.push(elapsed);
     lastValue = elapsed;
     PP.sfx("good");
+    PP.juice.bump(lastEl);
+    PP.juice.haptic(10);
     clearTimer();
 
     if (times.length >= ROUNDS) {
@@ -105,6 +108,8 @@
     best = PP.scores.save("reaction", average, "low");
     paintBest();
     PP.sfx("win");
+    PP.juice.shake(pad, 4);
+    PP.juice.haptic([20, 40, 20, 40]);
 
     var verdict =
       average < 200 ? "That's genuinely fast." :
@@ -140,6 +145,8 @@
     if (state === "waiting") {
       clearTimer();
       PP.sfx("bad");
+      PP.juice.shake(pad, 5);
+      PP.juice.haptic([20, 40, 20]);
       setPad("early", "Too soon!", "Wait for green, then tap. Tap to retry this round.");
       refreshHud();
       return;

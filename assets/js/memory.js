@@ -85,6 +85,10 @@
       first.disabled = true;
       second.disabled = true;
       PP.sfx("good");
+      PP.juice.burstAt(first, "#34d399", 9, 46);
+      PP.juice.burstAt(second, "#34d399", 9, 46);
+      PP.juice.bump(pairsEl);
+      PP.juice.haptic(12);
       matched++;
       first = null;
       second = null;
@@ -95,6 +99,8 @@
 
     locked = true;
     PP.sfx("bad");
+    PP.juice.shake(boardEl, 3);
+    PP.juice.haptic(18);
     var a = first;
     var b = second;
     setTimeout(function () {
@@ -115,6 +121,8 @@
     best = PP.scores.save("memory", moves, "low");
     bestEl.textContent = PP.formatNumber(best) + " moves";
     PP.sfx("win");
+    PP.juice.shake(document.querySelector(".stage") || boardEl, 5);
+    PP.juice.haptic([20, 40, 20, 40]);
 
     var record = previous === null || moves < previous;
     PP.showOverlay(

@@ -102,6 +102,9 @@
     var el = cell.el;
     if (!el) return;
     if (cell.revealed) {
+      if (el.getAttribute("data-state") !== "revealed" && !cell.mine) {
+        el.classList.add("just-revealed");
+      }
       el.setAttribute("data-state", "revealed");
       el.textContent = cell.mine ? "💣" : cell.adj ? String(cell.adj) : "";
       if (cell.adj) el.setAttribute("data-n", String(cell.adj));
@@ -142,6 +145,8 @@
     paintTile(index);
     paintHud();
     PP.sfx("pick");
+    PP.juice.haptic(8);
+    PP.juice.bump(minesEl);
   }
 
   function reveal(index) {
@@ -181,6 +186,10 @@
     });
     cell_markMine(index);
 
+    PP.juice.shake(document.querySelector(".stage"), 12);
+    PP.juice.haptic([40, 60, 90]);
+    PP.juice.burstAt(cells[index].el, "#ef4444", 18, 90);
+
     PP.showOverlay(
       overlay,
       '<p class="kicker">Boom</p><h2>That was a mine</h2>' +
@@ -202,6 +211,8 @@
     over = true;
     stopTimer();
     PP.sfx("win");
+    PP.juice.shake(document.querySelector(".stage"), 5);
+    PP.juice.haptic([20, 40, 20]);
     var seconds = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
     var previous = best;
     best = PP.scores.save("minesweeper", seconds, "low");

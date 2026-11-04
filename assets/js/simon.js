@@ -109,6 +109,8 @@
     pads.forEach(function (pad) { pad.classList.remove("is-lit"); });
     lockPads(true);
     PP.sfx("bad");
+    PP.juice.shake(document.querySelector(".stage"), 8);
+    PP.juice.haptic([30, 60, 60]);
     setStatus("Wrong pad — sequence broken.", "bad");
 
     var completed = Math.max(0, sequence.length - 1);
@@ -132,6 +134,8 @@
     cleared = sequence.length;
     paintHud();
     PP.sfx("win");
+    PP.juice.bump(roundEl);
+    PP.juice.haptic(10);
     setStatus("Correct! Next round coming…", "go");
     accepting = false;
     lockPads(true);
@@ -141,6 +145,7 @@
   function choose(index) {
     if (!accepting || playing) return;
     flash(index, 200);
+    PP.juice.haptic(12);
 
     if (sequence[inputIndex] !== index) {
       fail();
