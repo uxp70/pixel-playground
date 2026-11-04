@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ghost Protocol — Pixel Playground</title>
+  <meta name="description" content="Grid stealth: read the patrol cones, lift three data cores and reach the lift without being seen." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Ghost Protocol</span>
+    <span class="chip">Best <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Floor <b id="hudA">1 / 3</b></span>
+      <span class="chip">Cores <b id="hudB">0 / 3</b></span>
+      <span class="chip">Score <b id="hudC">0</b></span>
+    </div>
+
+    <div class="stage" style="max-width:760px">
+      <canvas id="board" width="760" height="560" role="img"
+              aria-label="Grid floor with patrolling guards and their vision cones"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <div class="dpad" role="group" aria-label="Movement">
+      <button class="up" type="button" data-dir="up" aria-label="Step up">▲</button>
+      <button class="left" type="button" data-dir="left" aria-label="Step left">◀</button>
+      <button class="down" type="button" data-dir="down" aria-label="Step down">▼</button>
+      <button class="right" type="button" data-dir="right" aria-label="Step right">▶</button>
+    </div>
+
+    <p class="hint">
+      <kbd>WASD</kbd> / arrows to step · tap a tile next to you · every step is a sound,
+      so wait for the cone to swing away before you move
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/games-data.js"></script>
+  <script src="../assets/js/originals.js"></script>
+  <script src="../assets/js/ghost.js"></script>
+</body>
+</html>
