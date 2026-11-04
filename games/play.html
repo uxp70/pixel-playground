@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Play — Pixel Playground</title>
+  <meta name="description" content="One page, one hundred and ten games. Tap to play any of the generated arcade cabinets." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/refresh.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title" id="game-title">Loading…</span>
+    <span class="chip">Best <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <p class="game-crumb" id="game-crumb"></p>
+
+    <div class="hud">
+      <span class="chip">Score <b id="hudA">0</b></span>
+      <span class="chip">Detail <b id="hudB">—</b></span>
+    </div>
+
+    <div class="stage" style="max-width:520px">
+      <canvas id="board" width="600" height="600" role="img" aria-label="Game board"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <p class="hint" id="game-hint">Pick a game from the arcade.</p>
+    <p class="hint">
+      <a href="../leaderboard.html">🏆 Leaderboard</a> ·
+      <a href="../account.html">Your account</a> ·
+      <a href="../index.html#games">All 121 games</a>
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/games-data.js"></script>
+  <script src="../assets/js/kit.js"></script>
+</body>
+</html>
