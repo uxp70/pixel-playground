@@ -1,45 +1,136 @@
-/* Hub page: show the player's saved records on each game card. */
+/* Hub page: the whole catalogue, searchable and filterable, with your records. */
 (function () {
   "use strict";
 
-  var LABELS = {
-    snake: function (v) { return "Best " + PP.formatNumber(v); },
-    "2048": function (v) { return "Best " + PP.formatNumber(v); },
-    breakout: function (v) { return "Best " + PP.formatNumber(v); },
-    pong: function (v) { return "Best rally " + PP.formatNumber(v) + " hits"; },
-    memory: function (v) { return "Fewest moves " + PP.formatNumber(v); },
-    simon: function (v) { return "Best " + PP.formatNumber(v) + " rounds"; },
-    minesweeper: function (v) { return "Fastest " + PP.formatNumber(v) + "s"; },
-    reaction: function (v) { return "Best avg " + PP.formatNumber(v) + " ms"; },
-    skyline: function (v) { return "Best " + PP.formatNumber(v) + " floors"; },
-    prism: function (v) { return "Fewest " + PP.formatNumber(v) + " rotations"; },
-    blackout: function (v) { return "Best " + PP.formatNumber(v) + " boards"; },
-  };
+  var games = (window.PP_GAMES || []).slice();
+  var grid = document.getElementById("gameGrid");
+  var search = document.getElementById("gameSearch");
+  var filters = document.getElementById("gameFilters");
+  var countEl = document.getElementById("cardCount");
+  var totalEl = document.getElementById("gameCount");
+  var emptyEl = document.getElementById("gameEmpty");
+  var resetEl = document.getElementById("gameReset");
 
-  var badges = document.querySelectorAll("[data-best]");
+  if (totalEl) totalEl.textContent = games.length;
 
-  Array.prototype.forEach.call(badges, function (el) {
-    var id = el.getAttribute("data-best");
-    var value = PP.scores.get(id);
-    var format = LABELS[id];
-    if (value === null || !format) {
-      el.textContent = "No score yet";
-      el.setAttribute("data-empty", "true");
-      return;
-    }
-    el.textContent = format(value);
-    el.removeAttribute("data-empty");
+  var cards = [];
+  var activeCat = "all";
+  var query = "";
+
+  function bestLine(game) {
+    var value = PP.scores.get(game.id);
+    if (value === null || value === undefined) return { text: "No score yet", empty: true };
+    var runs = PP.leaderboard.count(game.id);
+    return {
+      text: "Best " + PP.formatNumber(value) + game.unit + (runs ? " · " + runs + " runs" : ""),
+      empty: false,
+    };
+  }
+
+  function buildCard(game) {
+    var card = document.createElement("a");
+    card.className = "card";
+    card.href = game.href;
+    card.style.setProperty("--accent", game.accent);
+    card.setAttribute("data-cat", game.category);
+    card.setAttribute("data-search",
+      (game.title + " " + game.category + " " + game.blurb + " " + (game.kit || "classic")).toLowerCase());
+
+    var best = bestLine(game);
+    card.innerHTML =
+      '<span class="card-play" aria-hidden="true">Play →</span>' +
+      '<span class="card-icon" aria-hidden="true">' + game.emoji + "</span>" +
+      '<span class="card-tag">' + PP.escapeHtml(game.category) +
+      (game.level ? " · L" + game.level : "") + "</span>" +
+      "<h3>" + PP.escapeHtml(game.title) + "</h3>" +
+      "<p>" + PP.escapeHtml(game.blurb) + "</p>" +
+      '<span class="card-best"' + (best.empty ? ' data-empty="true"' : "") + ">" +
+      PP.escapeHtml(best.text) + "</span>";
+
+    grid.appendChild(card);
+    cards.push(card);
+    return card;
+  }
+
+  games.forEach(buildCard);
+
+  var counts = { all: games.length };
+  games.forEach(function (game) {
+    counts[game.category] = (counts[game.category] || 0) + 1;
   });
 
+  var order = ["all"];
+  Object.keys(counts).forEach(function (key) {
+    if (key !== "all") order.push(key);
+  });
+  order.sort(function (a, b) {
+    if (a === "all") return -1;
+    if (b === "all") return 1;
+    return counts[b] - counts[a];
+  });
+
+  order.forEach(function (cat) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cab-chip";
+    btn.setAttribute("data-cat", cat);
+    btn.setAttribute("aria-pressed", cat === activeCat ? "true" : "false");
+    btn.textContent = (cat === "all" ? "Everything" : cat) + " " + counts[cat];
+    btn.addEventListener("click", function () {
+      activeCat = cat;
+      Array.prototype.forEach.call(filters.children, function (node) {
+        node.setAttribute("aria-pressed", node === btn ? "true" : "false");
+      });
+      apply();
+      PP.sfx("pick");
+    });
+    filters.appendChild(btn);
+  });
+
+  function apply() {
+    var shown = 0;
+    cards.forEach(function (card) {
+      var matchesCat = activeCat === "all" || card.getAttribute("data-cat") === activeCat;
+      var matchesText = !query || card.getAttribute("data-search").indexOf(query) !== -1;
+      var visible = matchesCat && matchesText;
+      card.hidden = !visible;
+      if (visible) shown++;
+    });
+    if (countEl) countEl.textContent = shown;
+    if (emptyEl) emptyEl.hidden = shown > 0;
+  }
+
+  if (search) {
+    search.addEventListener("input", function () {
+      query = search.value.trim().toLowerCase();
+      apply();
+    });
+  }
+
+  if (resetEl) {
+    resetEl.addEventListener("click", function () {
+      query = "";
+      activeCat = "all";
+      if (search) search.value = "";
+      Array.prototype.forEach.call(filters.children, function (node, index) {
+        node.setAttribute("aria-pressed", index === 0 ? "true" : "false");
+      });
+      apply();
+    });
+  }
+
+  apply();
+
   // Hero stat: the single biggest score-like number on the device.
-  var numeric = ["skyline", "snake", "2048", "breakout", "pong", "blackout"]
-    .map(function (id) { return PP.scores.get(id); })
-    .filter(function (v) { return typeof v === "number"; });
+  var numeric = [];
+  games.forEach(function (game) {
+    if (game.mode !== "high") return;
+    var value = PP.scores.get(game.id);
+    if (typeof value === "number") numeric.push(value);
+  });
 
   var stat = document.getElementById("statBest");
   if (stat) {
-    stat.textContent = numeric.length
-      ? PP.formatNumber(Math.max.apply(null, numeric))
-      : "—";
+    stat.textContent = numeric.length ? PP.formatNumber(Math.max.apply(null, numeric)) : "—";
   }
 })();

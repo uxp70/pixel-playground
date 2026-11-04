@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Account — Pixel Playground</title>
+  <meta name="description" content="A device account for Pixel Playground: a name, a PIN, and every run filed under your avatar on the leaderboard." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/arcade.css" />
+  <link rel="stylesheet" href="assets/css/refresh.css" />
+</head>
+<body class="account-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to your account</a>
+
+  <header class="site-head">
+    <a class="brand" href="./">
+      <span class="brand-mark" aria-hidden="true">🎮</span>
+      Pixel Playground
+    </a>
+    <nav class="head-links" aria-label="Site">
+      <a href="./#games">Games</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="account.html" aria-current="page">Account</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero ac-hero">
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Device accounts</p>
+      <h1>Your seat in the <span class="grad">arcade</span>.</h1>
+      <p class="lede">
+        Sign in with a name and a PIN. Every run you finish is filed on the
+        leaderboard with your name and avatar, so the phone can be passed around
+        without everyone sharing one record.
+      </p>
+      <p class="ac-note">
+        Accounts live in this browser only — no email, no server, no real security.
+        The PIN just keeps friends on the same phone out of your board.
+      </p>
+    </section>
+
+    <section class="ac-panel" id="signedIn" aria-labelledby="profileName" hidden>
+      <div class="ac-card">
+        <span class="ac-avatar" id="profileAvatar" aria-hidden="true">🦊</span>
+        <div class="ac-card-text">
+          <h2 id="profileName">Player</h2>
+          <p class="ac-sub" id="profileSince"></p>
+        </div>
+        <button class="btn small ghost" type="button" id="signOut">Sign out</button>
+      </div>
+
+      <div class="ac-stats" id="profileStats"></div>
+
+      <h3 class="ac-h3">Your records</h3>
+      <div class="ac-bests" id="profileBests"></div>
+
+      <h3 class="ac-h3">Recent runs</h3>
+      <div class="ac-runs" id="profileRuns"></div>
+    </section>
+
+    <section class="ac-forms" id="accountForms" aria-label="Sign in or create an account">
+      <div class="ac-form">
+        <h2>Sign in</h2>
+        <form id="signinForm" novalidate>
+          <label for="signinName">Name</label>
+          <input id="signinName" type="text" maxlength="14" autocomplete="username"
+                 spellcheck="false" placeholder="Your handle" />
+          <label for="signinPin">PIN</label>
+          <input id="signinPin" type="password" inputmode="numeric" maxlength="8"
+                 autocomplete="current-password" placeholder="4–8 digits" />
+          <p class="ac-error" id="signinError" role="alert" hidden></p>
+          <button class="btn" type="submit">Sign in</button>
+        </form>
+      </div>
+
+      <div class="ac-form">
+        <h2>Create an account</h2>
+        <form id="signupForm" novalidate>
+          <label for="signupName">Name</label>
+          <input id="signupName" type="text" maxlength="14" autocomplete="nickname"
+                 spellcheck="false" placeholder="Your handle" />
+          <label for="signupPin">PIN</label>
+          <input id="signupPin" type="password" inputmode="numeric" maxlength="8"
+                 autocomplete="new-password" placeholder="4–8 digits" />
+          <label for="signupPin2">PIN again</label>
+          <input id="signupPin2" type="password" inputmode="numeric" maxlength="8"
+                 autocomplete="new-password" placeholder="Same digits" />
+          <p class="ac-error" id="signupError" role="alert" hidden></p>
+          <button class="btn" type="submit">Create account</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="ac-panel" aria-labelledby="device-heading">
+      <h3 class="ac-h3" id="device-heading">On this device</h3>
+      <div class="ac-list" id="deviceAccounts"></div>
+      <p class="ac-sub">
+        New runs are filed under the signed-in name.
+        <a href="leaderboard.html">See the leaderboard →</a>
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <span>Pixel Playground · accounts stay on this device</span>
+    <span><a href="./">Back to the arcade</a></span>
+  </footer>
+
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/games-data.js"></script>
+  <script src="assets/js/account.js"></script>
+</body>
+</html>

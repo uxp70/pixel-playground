@@ -4,16 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Leaderboard — Pixel Playground</title>
-  <meta name="description" content="Every finished run, ranked. Named players, medals and a board for each game — all saved on this device." />
+  <meta name="description" content="Every finished run from every one of the 121 games, ranked with player names and avatars — all saved on this device." />
   <meta name="theme-color" content="#070912" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta property="og:title" content="Pixel Playground leaderboard" />
-  <meta property="og:description" content="Named players, medals and per-game boards." />
+  <meta property="og:description" content="Named players, avatars, medals and per-game boards." />
   <link rel="stylesheet" href="assets/css/style.css" />
   <link rel="stylesheet" href="assets/css/arcade.css" />
+  <link rel="stylesheet" href="assets/css/refresh.css" />
 </head>
-<body>
-  <div class="orbs" aria-hidden="true"><span></span><span></span><span></span></div>
+<body class="board-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
   <a class="skip" href="#main">Skip to the leaderboard</a>
 
   <header class="site-head">
@@ -24,6 +25,7 @@
     <nav class="head-links" aria-label="Site">
       <a href="./#games">Games</a>
       <a href="leaderboard.html" aria-current="page">Leaderboard</a>
+      <a href="account.html">Account</a>
     </nav>
   </header>
 
@@ -33,25 +35,27 @@
       <h1>Hall of <span class="grad">fame</span>.</h1>
       <p class="lede">
         Every finished run lands here the moment a game ends — with the player's
-        name, the score and the date. Hand the phone around and the board keeps
-        everyone's attempts apart.
+        avatar, the score and the date. Hand the phone around and each device
+        account keeps its own records.
       </p>
       <p class="lb-count" id="lbTotal">No runs filed yet</p>
     </section>
 
     <section class="lb-player" aria-labelledby="lb-player-title">
       <h2 id="lb-player-title">Playing as</h2>
-      <div class="lb-player-row">
-        <label class="sr-only" for="lbName">Player name</label>
-        <input class="lb-name" id="lbName" type="text" maxlength="14" autocomplete="off"
-               spellcheck="false" placeholder="Player 1" />
-        <button class="btn small" type="button" id="lbSaveName">Save name</button>
-      </div>
+      <div class="lb-player-row" id="lbAccountRow"></div>
       <p class="lb-hint" id="lbPlayerHint">New runs are filed under this name.</p>
     </section>
 
     <section class="lb-panel" aria-labelledby="lbTitle">
-      <div class="lb-tabs" id="lbTabs" role="group" aria-label="Pick a game"></div>
+      <div class="lb-controls">
+        <label class="sr-only" for="lbGame">Game</label>
+        <select class="lb-select" id="lbGame"></select>
+        <label class="lb-toggle">
+          <input type="checkbox" id="lbMine" /> Only my runs
+        </label>
+      </div>
+
       <div class="lb-panel-head">
         <h2 id="lbTitle">Every game</h2>
         <button class="btn small ghost" type="button" id="lbClear">Clear everything</button>
@@ -70,6 +74,7 @@
   </footer>
 
   <script src="assets/js/common.js"></script>
+  <script src="assets/js/games-data.js"></script>
   <script src="assets/js/leaderboard-page.js"></script>
 </body>
 </html>
