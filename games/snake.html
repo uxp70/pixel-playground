@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snake — Pixel Playground</title>
+  <meta name="description" content="A neon take on the classic Snake game. Eat, grow, and don't crash. Play with arrow keys, WASD or swipe." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Snake</span>
+    <span class="chip">Best <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Score <b id="score">0</b></span>
+      <span class="chip">Length <b id="length">3</b></span>
+      <span class="chip">Speed <b id="level">1</b></span>
+    </div>
+
+    <div class="stage" style="max-width:520px">
+      <canvas id="board" width="600" height="600" role="img" aria-label="Snake game board"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <div class="dpad" role="group" aria-label="Directional controls">
+      <button class="up" type="button" data-dir="up" aria-label="Go up">▲</button>
+      <button class="left" type="button" data-dir="left" aria-label="Go left">◀</button>
+      <button class="down" type="button" data-dir="down" aria-label="Go down">▼</button>
+      <button class="right" type="button" data-dir="right" aria-label="Go right">▶</button>
+    </div>
+
+    <p class="hint">
+      <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> or <kbd>WASD</kbd> to steer ·
+      <kbd>Space</kbd> pauses · swipe on touch screens
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/snake.js"></script>
+</body>
+</html>

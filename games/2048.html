@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>2048 — Pixel Playground</title>
+  <meta name="description" content="Slide and merge tiles to reach 2048. Keyboard, swipe and touch supported." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">2048</span>
+    <span class="chip">Best <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Score <b id="score">0</b></span>
+      <span class="chip">Best tile <b id="topTile">0</b></span>
+    </div>
+
+    <div class="stage" style="max-width:520px; overflow:visible; background:none; border:0; box-shadow:none;">
+      <div class="board2048" id="board2048" role="group" aria-label="2048 board"></div>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <div class="game-tools">
+      <button class="btn small" type="button" id="newGame">New game</button>
+    </div>
+
+    <p class="hint">
+      Use <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> or <kbd>WASD</kbd>, or swipe
+      the board. Equal tiles merge when they touch.
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/2048.js"></script>
+</body>
+</html>
