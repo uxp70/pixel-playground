@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blackout — Pixel Playground</title>
+  <meta name="description" content="Kill every light on a 5 by 5 grid — each tap flips a cross. Sixty seconds, endless boards." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/arcade.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Blackout</span>
+    <span class="chip">Best <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Boards <b id="boards">0</b></span>
+      <span class="chip">Time <b id="time">60s</b></span>
+      <span class="chip">Taps <b id="moves">0</b></span>
+    </div>
+
+    <div class="stage">
+      <div class="blackout-board" id="board" role="group" aria-label="Blackout board" style="--cols:5"></div>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <p class="hint">
+      Tap a square to flip it and its four neighbours. Every board starts away from
+      "all off" — work backwards and clear it before the clock runs out.
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/blackout.js"></script>
+</body>
+</html>

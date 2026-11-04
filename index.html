@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Pixel Playground — eight tiny games, zero downloads</title>
-  <meta name="description" content="A tiny arcade of eight browser games: Snake, 2048, Breakout, Pong, Memory Match, Simon, Minesweeper and a Reaction Test. Built for phones, keyboards and fullscreen play." />
+  <title>Pixel Playground — eleven tiny games, zero downloads</title>
+  <meta name="description" content="A tiny arcade of eleven browser games — Skyline, Snake, 2048, Breakout, Pong, Memory Match, Simon, Minesweeper, a Reaction Test, Prism and Blackout — with a leaderboard for every one. Built for phones, keyboards and fullscreen play." />
   <meta name="theme-color" content="#070912" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta property="og:title" content="Pixel Playground" />
-  <meta property="og:description" content="Eight tiny browser games. No downloads, no ads, no sign-up." />
+  <meta property="og:description" content="Eleven tiny browser games with a leaderboard. No downloads, no ads, no sign-up." />
   <meta property="og:type" content="website" />
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
@@ -23,25 +23,27 @@
     </a>
     <nav class="head-links" aria-label="Site">
       <a href="#games">Games</a>
+      <a href="leaderboard.html">Leaderboard</a>
       <a href="#about">About</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
-      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Eight games · tap to play</p>
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Eleven games · tap to play</p>
       <h1>Play something <span class="grad">fun</span>.</h1>
       <p class="lede">
         A pocket arcade that loads instantly, plays with one thumb, and goes
-        fullscreen when you want the whole screen. Beat your own records — they
-        stick around on this device.
+        fullscreen when you want the whole screen. Every finished run is filed on
+        the leaderboard, so records stick around on this device.
       </p>
       <div class="hero-actions">
         <a class="btn" href="#games">Pick a game</a>
+        <a class="btn ghost" href="leaderboard.html">🏆 Leaderboard</a>
         <a class="btn ghost" href="games/snake.html">Play Snake →</a>
       </div>
       <div class="stats">
-        <div class="stat"><b>8</b><span>games</span></div>
+        <div class="stat"><b>11</b><span>games</span></div>
         <div class="stat"><b>0</b><span>ads, ever</span></div>
         <div class="stat"><b>1</b><span>page load</span></div>
         <div class="stat"><b id="statBest">—</b><span>best score</span></div>
@@ -118,6 +120,30 @@
           <p>Five rounds, one green screen. Find out how quick your thumbs really are.</p>
           <span class="card-best" data-best="reaction">No score yet</span>
         </a>
+
+        <a class="card" href="games/skyline.html" style="--accent:#f59e0b">
+          <span class="card-play" aria-hidden="true">Play →</span>
+          <span class="card-icon" aria-hidden="true">🌆</span>
+          <h3>Skyline</h3>
+          <p>One tap drops a sliding floor. Dead-centre drops keep the tower wide; sloppy ones shave it thin.</p>
+          <span class="card-best" data-best="skyline">No score yet</span>
+        </a>
+
+        <a class="card" href="games/prism.html" style="--accent:#a78bfa">
+          <span class="card-play" aria-hidden="true">Play →</span>
+          <span class="card-icon" aria-hidden="true">🔺</span>
+          <h3>Prism</h3>
+          <p>Flip mirrors to bend a laser into the gem. Five puzzles a run, fewest rotations wins.</p>
+          <span class="card-best" data-best="prism">No score yet</span>
+        </a>
+
+        <a class="card" href="games/blackout.html" style="--accent:#06b6d4">
+          <span class="card-play" aria-hidden="true">Play →</span>
+          <span class="card-icon" aria-hidden="true">🌑</span>
+          <h3>Blackout</h3>
+          <p>Kill every light on a 5×5 grid — each tap flips a cross. Sixty seconds, endless boards.</p>
+          <span class="card-best" data-best="blackout">No score yet</span>
+        </a>
       </div>
     </section>
 
@@ -130,7 +156,8 @@
         no network calls after the page loads. Every game is built for thumbs first,
         locks text selection while you play, and has a <b>⛶</b> button that takes it
         fullscreen. High scores are saved in your browser's local storage, so they stay
-        on the device you play on.
+        on the device you play on. Finish a run and it is filed on the leaderboard
+        under your name — handy when the phone gets passed around.
       </p>
     </section>
   </main>
