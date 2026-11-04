@@ -107,6 +107,7 @@
     var previous = best;
     best = PP.scores.save("reaction", average, "low");
     paintBest();
+    PP.leaderboard.submit("reaction", average);
     PP.sfx("win");
     PP.juice.shake(pad, 4);
     PP.juice.haptic([20, 40, 20, 40]);

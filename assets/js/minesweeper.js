@@ -217,6 +217,7 @@
     var previous = best;
     best = PP.scores.save("minesweeper", seconds, "low");
     paintBest();
+    PP.leaderboard.submit("minesweeper", seconds);
 
     cells.forEach(function (cell, i) {
       if (cell.mine && !cell.flagged) {

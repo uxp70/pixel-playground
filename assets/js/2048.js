@@ -194,6 +194,7 @@
     if (stuck()) {
       over = true;
       PP.sfx("bad");
+      PP.leaderboard.submit("2048", score);
       PP.showOverlay(
         overlay,
         '<p class="kicker">No moves left</p><h2>Board full</h2>' +
