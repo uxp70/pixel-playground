@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pixel Playground — five tiny games, zero downloads</title>
+  <meta name="description" content="A tiny arcade of five browser games: Snake, 2048, Memory Match, Breakout and Reaction Test. Keyboard and touch friendly, no ads, no sign-up." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="Pixel Playground" />
+  <meta property="og:description" content="Five tiny browser games. No downloads, no ads, no sign-up." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div class="orbs" aria-hidden="true"><span></span><span></span><span></span></div>
+  <a class="skip" href="#games">Skip to the games</a>
+
+  <header class="site-head">
+    <a class="brand" href="./">
+      <span class="brand-mark" aria-hidden="true">🎮</span>
+      Pixel Playground
+    </a>
+    <nav class="head-links" aria-label="Site">
+      <a href="#games">Games</a>
+      <a href="#about">About</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Five games · no downloads</p>
+      <h1>Play something <span class="grad">fun</span>.</h1>
+      <p class="lede">
+        A pocket arcade that loads instantly and works with a keyboard, a mouse or
+        your thumb. Beat your own records — they stick around on this device.
+      </p>
+      <div class="hero-actions">
+        <a class="btn" href="#games">Pick a game</a>
+        <a class="btn ghost" href="games/snake.html">Play Snake →</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>5</b><span>games</span></div>
+        <div class="stat"><b>0</b><span>ads, ever</span></div>
+        <div class="stat"><b>1</b><span>page load</span></div>
+        <div class="stat"><b id="statBest">—</b><span>best score</span></div>
+      </div>
+    </section>
+
+    <section id="games" aria-labelledby="games-heading">
+      <div class="section-head">
+        <h2 id="games-heading">The arcade</h2>
+        <p>Tap a card to start playing</p>
+      </div>
+
+      <div class="grid">
+        <a class="card" href="games/snake.html" style="--accent:#34d399">
+          <span class="card-play" aria-hidden="true">Play →</span>
+          <span class="card-icon" aria-hidden="true">🐍</span>
+          <h3>Snake</h3>
+          <p>Neon snake with wrap-free walls. Eat, grow, and don't clip your own tail.</p>
+          <span class="card-best" data-best="snake">No score yet</span>
+        </a>
+
+        <a class="card" href="games/2048.html" style="--accent:#fbbf24">
+          <span class="card-play" aria-hidden="true">Play →</span>
+          <span class="card-icon" aria-hidden="true">🔢</span>
+          <h3>2048</h3>
+          <p>Slide the tiles, merge the doubles, and chase that elusive 2048 square.</p>
+          <span class="card-best" data-best="2048">No score yet</span>
+        </a>
+
+        <a class="card" href="games/memory.html" style="--accent:#22d3ee">
+          <span class="card-play" aria-hidden="true">Play →</span>
+          <span class="card-icon" aria-hidden="true">🃏</span>
+          <h3>Memory Match</h3>
+          <p>Eight emoji pairs, sixteen cards, one sharp memory. Fewest moves wins.</p>
+          <span class="card-best" data-best="memory">No score yet</span>
+        </a>
+
+        <a class="card" href="games/breakout.html" style="--accent:#f472b6">
+          <span class="card-play" aria-hidden="true">Play →</span>
+          <span class="card-icon" aria-hidden="true">🧱</span>
+          <h3>Breakout</h3>
+          <p>Bounce the ball, clear the wall, keep it off the floor. Three lives, no mercy.</p>
+          <span class="card-best" data-best="breakout">No score yet</span>
+        </a>
+
+        <a class="card" href="games/reaction.html" style="--accent:#8b5cf6">
+          <span class="card-play" aria-hidden="true">Play →</span>
+          <span class="card-icon" aria-hidden="true">⚡</span>
+          <h3>Reaction Test</h3>
+          <p>Five rounds, one green screen. Find out how quick your thumbs really are.</p>
+          <span class="card-best" data-best="reaction">No score yet</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="about" class="hero" style="padding-top:64px">
+      <div class="section-head" style="margin-bottom:14px">
+        <h2>Built to be tiny</h2>
+      </div>
+      <p class="lede" style="margin-top:0">
+        Everything here is plain HTML, CSS and JavaScript — no frameworks, no trackers,
+        no network calls after the page loads. High scores are saved in your browser's
+        local storage, so they stay on the device you play on.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <span>Pixel Playground · made for passing five minutes</span>
+    <span>Hosted on <a href="https://pages.github.com/" rel="noopener">GitHub Pages</a></span>
+  </footer>
+
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/hub.js"></script>
+</body>
+</html>
