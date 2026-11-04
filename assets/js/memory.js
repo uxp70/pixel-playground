@@ -120,6 +120,7 @@
     var previous = best;
     best = PP.scores.save("memory", moves, "low");
     bestEl.textContent = PP.formatNumber(best) + " moves";
+    PP.leaderboard.submit("memory", moves);
     PP.sfx("win");
     PP.juice.shake(document.querySelector(".stage") || boardEl, 5);
     PP.juice.haptic([20, 40, 20, 40]);

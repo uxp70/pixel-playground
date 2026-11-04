@@ -243,6 +243,7 @@
     var previousBest = best;
     best = PP.scores.save("snake", game.score, "high");
     paintHud();
+    PP.leaderboard.submit("snake", game.score);
     var record = game.score > previousBest ? "New personal best!" : "Personal best: " + PP.formatNumber(best);
     PP.showOverlay(
       overlay,

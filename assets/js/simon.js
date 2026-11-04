@@ -117,6 +117,7 @@
     var previous = best;
     best = PP.scores.save("simon", completed, "high");
     paintHud();
+    PP.leaderboard.submit("simon", completed);
 
     PP.showOverlay(
       overlay,
