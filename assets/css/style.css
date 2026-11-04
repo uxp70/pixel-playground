@@ -1040,3 +1040,92 @@ kbd {
 @media (hover: none) and (pointer: coarse) {
   .site-foot a { padding: 6px 0; }
 }
+
+/* ==========================================================================
+   Feel — press states, counter bumps, impact sparks
+   All of it is short and decorative; the reduced-motion block above turns it
+   off in one go.
+   ========================================================================== */
+
+.game-main { position: relative; }
+
+/* Spark layer inside .stage; sits under the overlays, over the board. */
+.fx {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  pointer-events: none;
+}
+.fx i {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  will-change: transform, opacity;
+}
+
+.chip b { display: inline-block; }
+.chip b.is-bumped,
+.stat b.is-bumped {
+  animation: chipBump 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.6);
+}
+@keyframes chipBump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.3); color: #fff; }
+  100% { transform: scale(1); }
+}
+
+/* Overlay panels rise in instead of simply appearing. */
+.overlay { animation: overlayIn 0.22s ease-out; }
+@keyframes overlayIn { from { opacity: 0; } }
+.overlay-inner { animation: riseIn 0.36s cubic-bezier(0.2, 0.9, 0.3, 1.08) backwards; }
+.overlay .score-big {
+  animation: riseIn 0.42s 0.06s cubic-bezier(0.2, 0.9, 0.3, 1.2) backwards;
+}
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+}
+
+/* Press states: everything that can be tapped sinks a little. */
+.icon-btn { transition: background 0.15s ease, transform 0.12s ease; }
+.icon-btn:active { transform: scale(0.9); }
+
+.card { animation: cardIn 0.45s ease backwards; }
+@keyframes cardIn { from { opacity: 0; } }
+.card:nth-child(2) { animation-delay: 0.04s; }
+.card:nth-child(3) { animation-delay: 0.08s; }
+.card:nth-child(4) { animation-delay: 0.12s; }
+.card:nth-child(5) { animation-delay: 0.16s; }
+.card:nth-child(6) { animation-delay: 0.2s; }
+.card:nth-child(7) { animation-delay: 0.24s; }
+.card:nth-child(8) { animation-delay: 0.28s; }
+.card:active { transform: translateY(-2px) scale(0.995); }
+.card-icon { transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+.card:hover .card-icon { transform: translateY(-3px) rotate(-5deg); }
+
+.mcard { transition: transform 0.12s ease; }
+.mcard:active { transform: scale(0.955); }
+.mcard.matched { animation: matchedCard 0.4s ease; }
+@keyframes matchedCard { 40% { transform: scale(1.05); } }
+
+.cell2048.tile-merged { animation: mergePop 0.26s cubic-bezier(0.2, 0.9, 0.3, 1.5); }
+@keyframes mergePop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.17); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.26); }
+  100% { transform: scale(1); }
+}
+
+.mine-tile { transition: background 0.1s ease, transform 0.09s ease; }
+.mine-tile:active { transform: scale(0.88); }
+.mine-tile.just-revealed { animation: tileIn 0.16s ease-out; }
+@keyframes tileIn { from { transform: scale(0.8); opacity: 0.4; } }
+
+.simon-pad:active:not(:disabled) { transform: scale(0.945); }
+
+.reaction-pad:active { transform: scale(0.992); }
+.reaction-pad[data-state="go"] { animation: goPulse 0.45s ease-out; }
+@keyframes goPulse {
+  0% { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
