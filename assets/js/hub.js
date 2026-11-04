@@ -11,6 +11,9 @@
     simon: function (v) { return "Best " + PP.formatNumber(v) + " rounds"; },
     minesweeper: function (v) { return "Fastest " + PP.formatNumber(v) + "s"; },
     reaction: function (v) { return "Best avg " + PP.formatNumber(v) + " ms"; },
+    skyline: function (v) { return "Best " + PP.formatNumber(v) + " floors"; },
+    prism: function (v) { return "Fewest " + PP.formatNumber(v) + " rotations"; },
+    blackout: function (v) { return "Best " + PP.formatNumber(v) + " boards"; },
   };
 
   var badges = document.querySelectorAll("[data-best]");
@@ -29,7 +32,7 @@
   });
 
   // Hero stat: the single biggest score-like number on the device.
-  var numeric = ["snake", "2048", "breakout", "pong"]
+  var numeric = ["skyline", "snake", "2048", "breakout", "pong", "blackout"]
     .map(function (id) { return PP.scores.get(id); })
     .filter(function (v) { return typeof v === "number"; });
 
