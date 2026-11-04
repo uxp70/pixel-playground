@@ -281,6 +281,7 @@
     game.running = false;
     game.over = true;
     PP.sfx(youWon ? "win" : "bad");
+    PP.leaderboard.submit("pong", bestRally);
     PP.showOverlay(
       overlay,
       '<p class="kicker">' + (youWon ? "Match won" : "Match lost") + "</p>" +

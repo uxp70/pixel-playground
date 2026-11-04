@@ -312,6 +312,7 @@
     game.pending = true;
     best = PP.scores.save("breakout", game.score, "high");
     paintHud();
+    PP.leaderboard.submit("breakout", game.score);
     PP.sfx(won ? "win" : "bad");
 
     PP.showOverlay(
