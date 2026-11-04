@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lunar Descent — Pixel Playground</title>
+  <meta name="description" content="A lunar lander: gravity, one throttle, five pads and a very small fuel tank. Land soft, land close." />
+  <meta name="theme-color" content="#070912" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="game-page">
+  <div class="orbs" aria-hidden="true"><span></span><span></span></div>
+  <a class="skip" href="#main">Skip to game</a>
+
+  <header class="game-head">
+    <a class="back" href="../index.html"><span aria-hidden="true">←</span> All games</a>
+    <span class="game-title">Lunar Descent</span>
+    <span class="chip">Best <b id="best">0</b></span>
+    <button class="icon-btn" type="button" data-mute aria-label="Mute sound">🔊</button>
+  </header>
+
+  <main id="main" class="game-main">
+    <div class="hud">
+      <span class="chip">Score <b id="hudA">0</b></span>
+      <span class="chip">Fuel <b id="hudB">100</b></span>
+      <span class="chip">Descent <b id="hudC">0</b></span>
+    </div>
+
+    <div class="stage" style="max-width:900px">
+      <canvas id="board" width="900" height="520" role="img"
+              aria-label="Lander above rotating terrain with landing pads"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <div class="dpad" role="group" aria-label="Lander controls">
+      <button class="up" type="button" data-dir="up" aria-label="Thrust">▲</button>
+      <button class="left" type="button" data-dir="left" aria-label="Rotate left">◀</button>
+      <button class="down" type="button" data-dir="down" aria-label="Nothing">•</button>
+      <button class="right" type="button" data-dir="right" aria-label="Rotate right">▶</button>
+    </div>
+
+    <p class="hint">
+      <kbd>←</kbd> <kbd>→</kbd> rotate · <kbd>↑</kbd> or <kbd>Space</kbd> thrust ·
+      the pad's multiplier is what a clean landing is worth
+    </p>
+  </main>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/games-data.js"></script>
+  <script src="../assets/js/originals.js"></script>
+  <script src="../assets/js/descent.js"></script>
+</body>
+</html>
