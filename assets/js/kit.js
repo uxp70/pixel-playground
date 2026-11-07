@@ -343,7 +343,6 @@
       api.py = point.y;
       try { canvas.setPointerCapture(event.pointerId); } catch (err) { /* older browsers */ }
       if (kit.down) kit.down(point.x, point.y);
-      else if (!kit.swipe && kit.tap) kit.tap(point.x, point.y);
     });
 
     canvas.addEventListener("pointermove", function (event) {
