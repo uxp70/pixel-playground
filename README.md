@@ -1,34 +1,34 @@
 # 🎮 Pixel Playground
 
-A tiny arcade of eight browser games. Plain HTML, CSS and JavaScript — no frameworks,
-no build step, no trackers, no network calls after the page loads.
+A pocket arcade of **1,026 browser games** — 16 hand-built cabinets, 110 kit
+games and 900 Atlas modes across 50 new engine families. Plain HTML, CSS and
+JavaScript: no frameworks, no build step, no trackers and no network calls after
+the page loads.
 
-| Game | What it is | Record kept |
-| --- | --- | --- |
-| **Snake** | Neon snake on a 20×20 grid. Speed ramps up as you eat. | highest score |
-| **2048** | Slide-and-merge puzzle on a 4×4 board. | highest score |
-| **Breakout** | Paddle, ball, 40 bricks, three lives. | highest score |
-| **Pong** | First to seven against the computer. | longest rally |
-| **Memory Match** | Eight emoji pairs, scored by fewest moves. | fewest moves |
-| **Simon** | Repeat a growing colour-and-tone sequence. | most rounds cleared |
-| **Minesweeper** | 9×9, ten mines, first tap always safe. | fastest clear |
-| **Reaction Test** | Five rounds, average reaction time in milliseconds. | best average |
+## The catalogue
+
+| Part | Count | What it is |
+| --- | ---: | --- |
+| Hand-built cabinets | 16 | Eleven bespoke games plus five later originals, each with its own page and rules. |
+| Kit games | 110 | Eleven games from each of ten reusable engines, all launched through `games/play.html?g=<id>`. |
+| Atlas modes | 900 | 50 new engine families × 18 rule editions, launched through the same play page. |
+
+Every game has a stable id, its own card in the hub, a local best score and a
+leaderboard entry. The Atlas editions are real rule variants handled by a shared
+session layer: timer, lives, speed ramp, mirror, fog, scale, combo, boss phases,
+relic pickups, seeded daily layouts and the combined finale.
 
 ## Play
 
-Every game is built for phones first:
-
-- **Touch controls** — on-screen d-pad for Snake, swipe for Snake/2048, drag for
-  Breakout and Pong, long-press or flag mode for Minesweeper.
-- **Fullscreen** — the `⛶` button (or <kbd>F</kbd>) fills the screen. It uses the
-  Fullscreen API where available and a full-viewport layout on iPhone, where element
-  fullscreen is not supported. <kbd>Esc</kbd> or the floating ✕ exits.
-- **Nothing is selectable** — text selection, long-press callouts and the context menu
-  on play surfaces are disabled, so dragging a paddle never highlights the page.
-- **Boards own their gestures** — `touch-action: none` stops a swipe from scrolling,
-  and `overscroll-behavior: none` kills pull-to-refresh mid-game.
-
-Personal bests live in `localStorage`, so they stay on the device you play on.
+- **Touch and keyboard.** Tap and drag on the canvas, swipe where the cabinet
+  calls for it, or use arrows/WASD. Atlas games map the same input through their
+  edition modifiers.
+- **Fullscreen.** The ⛶ button or <kbd>F</kbd> fills the screen. <kbd>Esc</kbd>
+  or the floating ✕ exits.
+- **Scores stay local.** Personal bests and up to 50 runs per game live in
+  `localStorage`; the account page keeps separate device profiles.
+| -**No dependencies.** The music is generated with the Web Audio API and every
+  visual is drawn on a canvas or built from the shared stylesheet.
 
 ## Run it locally
 
@@ -41,36 +41,45 @@ python3 -m http.server 3000
 
 ## Deploy to GitHub Pages
 
-The site is served straight from the repository root, so Pages needs no build step.
+The site is served straight from the repository root, so Pages needs no build
+step. Set **Settings → Pages → Deploy from a branch**, choose `main` and
+`/ (root)`. The live URL is `https://<user>.github.io/<repo>/`.
 
-1. Push this repository to GitHub.
-2. Go to **Settings → Pages**.
-3. Under **Build and deployment**, set **Source** to *Deploy from a branch*,
-   the branch to `main`, and the folder to `/ (root)`.
-4. Save. The site goes live at `https://<user>.github.io/<repo>/` within a minute or two.
-
-The empty `.nojekyll` file stops Jekyll from processing the site, which keeps every
-asset path exactly as written. Pushing to `main` republishes automatically.
+The empty `.nojekyll` file stops Jekyll from processing the site, which keeps
+every asset path exactly as written. Pushing to `main` republishes automatically.
 
 ## Layout
 
 ```
-index.html               hub page with the game cards
-games/*.html             one page per game
-assets/css/style.css     the whole design system
-assets/js/common.js      scores, sound, fullscreen, canvas + input helpers
-assets/js/hub.js         fills in the records on the hub cards
-assets/js/<game>.js      one script per game
-favicon.svg
+index.html                   searchable 1,026-game hub
+games/play.html              runner for kit games and all Atlas modes
+games/<name>.html            bespoke cabinet pages
+assets/css/style.css         shared design system
+assets/css/refresh.css       refreshed arcade palette
+assets/js/common.js          scores, leaderboard, accounts, sound, input helpers
+assets/js/games-data.js      11 bespoke + 110 kit catalogue entries
+assets/js/atlas-data.js      50 families and 900 Atlas catalogue entries
+assets/js/atlas.js           shared Atlas session layer and Atlas kit
+assets/js/atlas/01-timing.js   10 Atlas families
+assets/js/atlas/02-aim.js      10 Atlas families
+assets/js/atlas/03-puzzles.js  10 Atlas families
+assets/js/atlas/04-brain.js    10 Atlas families
+assets/js/atlas/05-action.js   10 Atlas families
+assets/js/kit.js              cabinet runner for all 1,010 runner games
+assets/js/kits/*.js          the ten original kit engines
+assets/js/originals.js       the five later bespoke entries
 ```
 
 ## Adding a game
 
-1. Copy any `games/*.html` page and change the title, HUD and script tag. The
-   fullscreen button is injected into the header automatically by `common.js`.
-2. Add an `assets/js/<name>.js` script. `PP` from `common.js` gives you:
-   - `scores.get/save(id, value, "high" | "low")`
-   - `sfx("pick" | "good" | "bad" | "win")` and `tone(freq, ms)`
-   - `fitCanvas`, `onDirectionalKeys`, `onSwipe`, `showOverlay` / `hideOverlay`
-3. Add a `<a class="card">` to `index.html` with an accent colour and a
-   `data-best="<name>"` badge (plus a label for it in `hub.js`).
+1. Add a catalogue record and a page or kit mode. The hub, leaderboard, account
+   page and play page all read the same `PP_GAMES` array.
+2. For a stand-alone cabinet, copy a `games/*.html` page and use `PP` from
+   `common.js`: `scores.get/save`, `sfx`/`tone`, `fitCanvas`,
+   `onDirectionalKeys`, `onSwipe` and `showOverlay`/`hideOverlay`.
+3. For a family of games, register a kit with `PP_KIT.register(id, { modes,
+   make(api) })`. The runner supplies the canvas, pointer and keyboard input,
+   HUD, pause/finish overlays, best-score saving and leaderboard submission.
+
+The catalogue is client-side data only, so adding entries does not require a
+key.
