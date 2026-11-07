@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Skyline — Pixel Playground</title>
-  <meta name="description" content="Drop sliding floors and stack a neon tower as high as you can. Perfect timing keeps the tower wide." />
+  <meta name="description" content="Stack sliding floors from the street to orbit. Perfect drops rebuild the tower, gusts shove the floor, and every district brings new architecture." />
   <meta name="theme-color" content="#070912" />
   <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../assets/css/style.css" />
@@ -24,6 +24,7 @@
     <div class="hud">
       <span class="chip">Floors <b id="floors">0</b></span>
       <span class="chip">Perfect streak <b id="streak">0</b></span>
+      <span class="chip">District <b id="zone">Street</b></span>
     </div>
 
     <div class="stage">
@@ -33,7 +34,8 @@
 
     <p class="hint">
       Tap, click or press <kbd>space</kbd> to drop the sliding floor. Land it dead on
-      to keep the full width — miss and the tower gets thinner.
+      to keep the full width — miss and the tower gets thinner. After ten floors,
+      gusts push the floor sideways.
     </p>
   </main>
 

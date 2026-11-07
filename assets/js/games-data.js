@@ -193,7 +193,7 @@
 
   var BESPOKE = [
     ["skyline", "Skyline", "🌆", "#f59e0b", "Arcade", "games/skyline.html", "high", " floors",
-      "One tap per floor. Perfect drops keep the width; sloppy ones shave it thin.", "Tap to drop"],
+      "One tap per floor. Perfect drops rebuild the width; gusts and high-altitude districts keep it interesting.", "Tap to drop"],
     ["snake", "Snake", "🐍", "#34d399", "Classic", "games/snake.html", "high", " pts",
       "Neon snake with wrap-free walls. Eat, grow, and do not clip your own tail.", "Arrows, WASD or swipe"],
     ["2048", "2048", "🔢", "#fbbf24", "Puzzle", "games/2048.html", "high", " pts",
