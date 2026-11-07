@@ -34,8 +34,10 @@
     card.style.setProperty("--accent", game.accent);
     card.setAttribute("data-cat", game.category);
     card.setAttribute("data-search",
-      (game.title + " " + game.category + " " + game.blurb + " " + (game.kit || "classic")).toLowerCase());
-
+      [game.title, game.category, game.blurb, game.kit || "classic", game.familyTitle, game.editionLabel]
+        .join(" ")
+        .toLowerCase();
+ 
     var best = bestLine(game);
     card.innerHTML =
       '<span class="card-play" aria-hidden="true">Play →</span>' +
