@@ -1,8 +1,9 @@
-/* Cabinet runner for the 110 generated games.
+/* Cabinet runner for the 110 kit games and 900 Atlas modes.
 
    Each engine registers itself through PP_KIT.register(id, definition) from
-   assets/js/kits/*.js. A definition is { modes: [11], make(api) } where every
-   mode is a different game, not a difficulty tier. The runner owns the canvas,
+   assets/js/kits/*.js or assets/js/atlas.js. A definition is { modes: [...],
+   make(api) } where every mode is a different game, not a difficulty tier.
+   The runner owns the canvas,
    input, overlays, scoring and the frame loop. */
 (function () {
   "use strict";
@@ -363,6 +364,7 @@
       var dy = point.y - downY;
       var isSwipe = Math.hypot(dx, dy) >= 34;
       try { canvas.releasePointerCapture(event.pointerId); } catch (err) { /* ignore */ }
+      if (kit.release) kit.release(point.x, point.y, dx, dy);
       if (isSwipe && kit.swipe) {
         kit.swipe(dx > 0 ? 1 : -1, dy > 0 ? 1 : -1);
         return;
