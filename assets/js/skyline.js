@@ -983,7 +983,7 @@
     ctx.textAlign = "right";
     ctx.font = "700 11px system-ui, sans-serif";
     ctx.fillStyle = "rgba(200,230,255," + (wind.strength * 0.75) + ")";
-    ctx.fillText(wind.dir > 0 ? "GUST \\u2192" : "\\u2190 GUST", W - 18, H * 0.09);
+    ctx.fillText(wind.dir > 0 ? "GUST \u2192" : "\u2190 GUST", W - 18, H * 0.09);
     ctx.textAlign = "left";
   }
 
