@@ -36,8 +36,8 @@
     card.setAttribute("data-search",
       [game.title, game.category, game.blurb, game.kit || "classic", game.familyTitle, game.editionLabel]
         .join(" ")
-        .toLowerCase();
- 
+        .toLowerCase());
+
     var best = bestLine(game);
     card.innerHTML =
       '<span class="card-play" aria-hidden="true">Play →</span>' +
@@ -50,7 +50,6 @@
 
     grid.appendChild(card);
     cards.push(card);
-    return card;
   }
 
   games.forEach(buildCard);
@@ -122,7 +121,6 @@
 
   apply();
 
-  // Hero stat: the single biggest score-like number on the device.
   var numeric = [];
   games.forEach(function (game) {
     if (game.mode !== "high") return;
