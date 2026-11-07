@@ -216,6 +216,132 @@
       "Kill every light on a 5x5 grid — each tap flips a cross. Sixty seconds.", "Tap squares"],
   ];
 
+  /* One rule line per generated cabinet. The old catalogue repeated the same
+     kit description eleven times; this map is the promise each game keeps. */
+  var RULES = {
+    "tap-storm": "Twenty seconds of fading targets. A dud costs two hits.",
+    "rapid-grid": "A 4x4 grid lights one cell at a time. Hit it before it moves.",
+    "blip-rush": "One blip teleports around the screen. Every hit shrinks it.",
+    "pop-circuit": "Six nodes light in order. Complete the circuit for a bonus.",
+    "swat-squad": "Six flies bounce around. Chain quick swats for extra points.",
+    "dot-frenzy": "A screen of short-lived dots, no penalty. Pop as many as you can.",
+    "tap-tide": "Targets rise from the dark. Let one cross the line and lose a life.",
+    "pixel-panic": "Grey duds hide among the lights. Wrong taps cost two.",
+    "snap-field": "The scoring ring opens and closes. Only targets inside it count.",
+    "pulse-tap": "Targets fade in and out. Only the bright pulses are tappable.",
+    "tap-finale": "A three-phase core with orbiting shields. Hit the core, not the guards.",
+
+    "meteor-dip": "Meteors arc toward you. Slide along the floor and keep moving.",
+    "shard-fall": "Shards split in mid-air, and the pieces spread wider.",
+    "gap-runner": "Walls fall with one gap. Line it up and pass through.",
+    "comet-dodge": "Comet tails burn as hot as the heads. Dodge the whole streak.",
+    "spike-rain": "Landed spikes stay put and shrink the safe floor. Three lives.",
+    "neon-dive": "Laser bars sweep the arena. Move in two dimensions.",
+    "icefall": "The floor is ice: momentum carries you past the gap.",
+    "drift-zone": "The whole floor slides. The falling shards do not care.",
+    "hailstorm": "Dense, tiny hail, four lives and nowhere to stand still.",
+    "void-sway": "The arena sways sideways, carrying every shard with it.",
+    "last-light": "Darkness closes in; you only see what is near the lamp.",
+
+    "star-basket": "Stars fall and bombs hide among them. Catch the stars.",
+    "fruit-fall": "A target colour is called. Catch that fruit and nothing else.",
+    "coin-catch": "Coins bounce off pegs on the way down. Read the angle.",
+    "orb-scoop": "Big orbs split into two smaller, faster orbs as they fall.",
+    "drop-harvest": "A crosswind pushes the harvest. Lead the basket.",
+    "gem-grab": "Fast gems, a narrow basket and a chain bonus for clean catches.",
+    "bubble-net": "The net swings on its own. Time the catch, not the position.",
+    "seed-catch": "Every seed narrows the basket. Choose what you catch.",
+    "moon-scoop": "Low gravity makes the fruit drift and bounce before it lands.",
+    "loot-fall": "Loot looks like junk until it is close. Commit late.",
+    "final-haul": "A crate takes three hits while bombs rain. Keep under it.",
+
+    "echo-grid": "A 3x3 grid flashes a growing sequence. Repeat it.",
+    "glow-sequence": "The same memory game on a 4x4 board, with longer patterns.",
+    "light-order": "Numbered pads flash. Repeat the order, not just the shape.",
+    "signal-path": "Each flash is next to the last. Remember the path.",
+    "pulse-recall": "The pattern plays faster and the gaps between flashes shrink.",
+    "cipher-lights": "Every pad is a digit. The code is shown as numbers.",
+    "neon-memory": "The board turns after every round. Track the pads through it.",
+    "pattern-loop": "Memorise five lit cells, then spot the one that changed.",
+    "flash-code": "Four colour pads, one colour sequence. Repeat it.",
+    "grid-echo": "Watch the left grid, reproduce the pattern on the right.",
+    "memory-tide": "A long sequence, faster playback and three lives.",
+
+    "quickdraw": "Five rounds. Wait for the panel, then tap the instant it flips.",
+    "green-light": "A traffic light cycles red, amber, green. Tap only on green.",
+    "snap-reflex": "A target appears somewhere on the screen. Hit it fast.",
+    "trigger-test": "A marker sweeps a bar. Tap while it is in the green.",
+    "twitch": "A cue flashes for half a second, then it is gone.",
+    "fast-hands": "One side lights up. Tap that side, not the other.",
+    "side-step": "An arrow points left or right. Match it with a tap or key.",
+    "jump-cue": "A rising bar, a narrow green zone. Eight precise taps.",
+    "ready-set": "Five rounds with a heavy false-start penalty.",
+    "beat-clock": "A metronome ticks. Tap on the beat, not between.",
+    "flash-tap": "Ten rapid cues in a row. Keep the rhythm.",
+
+    "towering": "Drop each sliding floor as close to centre as you can.",
+    "brick-lift": "Every new brick has a different width. Adjust before dropping.",
+    "cloud-stack": "A gust pushes the sliding floor. Correct against the wind.",
+    "deck-up": "Perfect drops grow the deck wide; misses cut it back.",
+    "sky-pile": "A slow current pushes the sliding floor sideways.",
+    "floor-rise": "Each floor is thinner than the last. Below 56 px the run ends.",
+    "block-tower": "Wide blocks and a faster climb. Perfect drops grow the tower.",
+    "crane-up": "The block swings on a crane. Drop it at the bottom of the arc.",
+    "stack-yard": "Random widths and faster blocks. No two floors match.",
+    "high-rise": "The block accelerates every floor. Speed is the enemy.",
+    "tower-ten": "Ten perfect drops wins. One miss ends the run.",
+
+    "quick-math": "Eight sums, ten seconds each. Pick the right answer.",
+    "number-crunch": "Eight mixed addition and subtraction questions.",
+    "sum-sprint": "Ten sums with only six seconds per question.",
+    "equation-dash": "The sum is missing a number. Find the missing operand.",
+    "mental-grit": "No clock, ten questions, and the first wrong answer ends it.",
+    "add-attack": "Fifteen additions, five seconds each.",
+    "times-table": "Eight multiplication questions, ten seconds apiece.",
+    "fraction-flip": "Add fractions with the same denominator.",
+    "pattern-sum": "A number sequence with one term missing.",
+    "brain-bolt": "A sum is shown. Decide whether it is true or false.",
+    "sum-storm": "Twelve mixed questions with seven seconds each.",
+
+    "thread-snake": "A 15x15 grid, walls that kill and food that lengthens you.",
+    "circuit-worm": "Static blocks litter the grid. Route around them.",
+    "glow-worm": "The walls wrap; leaving one side returns you on the other.",
+    "trail-twist": "Every meal makes the snake faster.",
+    "loop-snake": "Two portals connect opposite edges. Use them to escape.",
+    "neon-worm": "Golden food is worth more; ordinary food still grows you.",
+    "coil": "Every four meals, a wall grows across one edge of the arena.",
+    "ribbon-run": "Two foods, one decaying. Keep the ribbon moving.",
+    "wire-snake": "Live wires crawl across the board. Do not touch them.",
+    "tail-chase": "A rival snake hunts the same food, and you.",
+    "serpent-loop": "Wrapping walls, obstacles and a rising pace.",
+
+    "brick-wall": "Four rows of bricks, three lives, one paddle.",
+    "paddle-pop": "Three balls in play at once.",
+    "ball-bash": "A heavy ball ploughs through bricks without bouncing.",
+    "smash-grid": "The brick wall slides from side to side.",
+    "bounce-break": "Paddle movement changes the bounce angle.",
+    "wall-cracker": "Some bricks are indestructible. Clear every breakable one.",
+    "brick-drift": "Gravity pulls the ball down. Keep it up.",
+    "bat-and-ball": "A moving bat adds spin to every return.",
+    "pillar-pop": "Tall pillars instead of a wide wall.",
+    "shard-smash": "Every brick hit can split the ball in two.",
+    "final-wall": "One huge wall with 26 hit points.",
+
+    "lane-runner": "Three lanes, oncoming traffic and one car length of warning.",
+    "dash-line": "Four lanes and faster traffic.",
+    "track-sprint": "Five lanes at sprint speed.",
+    "rift-runner": "The edges wrap; leaving one side returns you on the other.",
+    "side-sprint": "Barriers block random lanes. Pick the open one.",
+    "neon-lanes": "Headlights cut a narrow cone through the dark.",
+    "corridor-dash": "Three lanes, barriers and the fastest traffic yet.",
+    "hurdle-run": "Hurdles leave only a lane or two open.",
+    "slip-lane": "Oil patches drag you into the next lane.",
+    "charge-line": "The car accelerates for the whole run.",
+    "last-lane": "Five lanes, hurdles, darkness and top speed.",
+  };
+
+  window.PP_RULES = RULES;
+
   function build() {
     var list = BESPOKE.map(function (row) {
       return {
@@ -228,10 +354,11 @@
     Object.keys(VARIANTS).forEach(function (kit) {
       var meta = KIT_META[kit];
       VARIANTS[kit].forEach(function (row, index) {
+        var rule = RULES[row[0]] || meta.blurb;
         list.push({
           id: row[0], title: row[1], emoji: row[2], accent: row[3], category: meta.category,
           href: "games/play.html?g=" + row[0], mode: meta.mode, unit: meta.unit,
-          blurb: row[4] + " " + meta.blurb, controls: meta.controls,
+          blurb: row[4] + " " + rule, rule: rule, controls: meta.controls,
           kit: kit, level: index + 1,
         });
       });

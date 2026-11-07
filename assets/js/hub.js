@@ -40,8 +40,7 @@
     card.innerHTML =
       '<span class="card-play" aria-hidden="true">Play →</span>' +
       '<span class="card-icon" aria-hidden="true">' + game.emoji + "</span>" +
-      '<span class="card-tag">' + PP.escapeHtml(game.category) +
-      (game.level ? " · L" + game.level : "") + "</span>" +
+      '<span class="card-tag">' + PP.escapeHtml(game.category) + "</span>" +
       "<h3>" + PP.escapeHtml(game.title) + "</h3>" +
       "<p>" + PP.escapeHtml(game.blurb) + "</p>" +
       '<span class="card-best"' + (best.empty ? ' data-empty="true"' : "") + ">" +
