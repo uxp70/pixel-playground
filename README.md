@@ -1,10 +1,13 @@
 # 🎮 Pixel Playground
 
 A pocket arcade of **176 playable entries**: 16 hand-built cabinets, 110 kit
-challenges from ten reusable engines, and 50 standalone Atlas cabinets. Each
-Atlas cabinet is its own mechanic — there are no Classic/Rapid editions, no
-family variants and no repeated rule sets. Plain HTML, CSS and JavaScript — no
-frameworks, no build step, no trackers and no network calls after the page loads.
+cabinets and 50 standalone Atlas cabinets. Every catalogue entry is a standalone
+unit: the bespoke pages are self-contained, and the 160 runner games each have
+their own one-mode engine registration and unique engine id. The ten kit family
+files are mode libraries behind the 110 kit registrations, not catalogue engines.
+The Atlas has no Classic/Rapid editions, no family variants and no repeated rule
+sets. Plain HTML, CSS and JavaScript — no frameworks, no build step, no trackers
+and no network calls after the page loads.
 
 Every entry has a stable id, a card in the searchable hub, a local best score and
 a leaderboard entry. The Atlas cabinets are one screen each, with their own verb,
@@ -46,8 +49,9 @@ assets/js/games-data.js      11 core + 110 kit entries
 assets/js/atlas-data.js      50 standalone Atlas cabinets
 assets/js/atlas.js           Atlas frame loop and input plumbing
 assets/js/atlas/0*.js        five files, ten mechanics each
-assets/js/kit.js             runner for the 160 runner games
-assets/js/kits/*.js          the ten original kit engines
+assets/js/kit.js             runner for the 160 kit and Atlas engines
+assets/js/kit-engines.js     splits the kit libraries into 110 engines
+assets/js/kits/*.js          the ten mode libraries behind 110 kit engines
 assets/js/originals.js       the five later bespoke entries
 ```
 
