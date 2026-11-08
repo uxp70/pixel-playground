@@ -1,4 +1,4 @@
-/* Cabinet runner for the 110 kit games and 900 Atlas modes.
+/* Cabinet runner for the 110 kit games and 50 standalone Atlas cabinets.
 
    Each engine registers itself through PP_KIT.register(id, definition) from
    assets/js/kits/*.js or assets/js/atlas.js. A definition is { modes: [...],
@@ -33,11 +33,18 @@
   function register(id, def) {
     if (id && def && def.make && def.modes) KITS[id] = def;
   }
+  function engineId(name) {
+    return "kit-" + String(name || "")
+      .toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
 
   window.PP_KITS = KITS;
   window.PP_KIT = {
     W: W, H: H, rand: rand, clamp: clamp, near: near,
-    roundRect: roundRect, register: register,
+    roundRect: roundRect, register: register, engineId: engineId,
   };
 
   /* ------------------------------------------------------------- backdrop --- */
@@ -170,8 +177,8 @@
       return;
     }
 
-    var level = game.level || 1;
-    var mode = kitFactory.modes[level - 1] || kitFactory.modes[0] || {};
+    var mode = kitFactory.modes[0] || {};
+    var level = mode.level || 1;
     var modeName = mode.name || game.title;
     var modeRule = mode.rule || game.rule || "";
     var controls = mode.controls || game.controls || "Tap to play";

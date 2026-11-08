@@ -1,5 +1,6 @@
-/* The whole catalogue: eleven hand-built games plus 110 generated ones.
-   Loaded by the hub, the leaderboard, the play page and the account page. */
+/* The core catalogue: eleven hand-built games plus 110 kit challenges.
+   atlas-data.js appends 50 standalone Atlas cabinets, and originals.js appends
+   the five later bespoke games. Loaded by every catalogue page. */
 (function () {
   "use strict";
 
@@ -57,7 +58,7 @@
     },
   };
 
-  /* [id, title, emoji, accent, flavour line] — eleven per engine. */
+  /* [id, title, emoji, accent, flavour line] — eleven per mode library. */
   var VARIANTS = {
     tap: [
       ["tap-storm", "Tap Storm", "🎯", "#f43f5e", "A downpour of targets."],
@@ -359,7 +360,7 @@
           id: row[0], title: row[1], emoji: row[2], accent: row[3], category: meta.category,
           href: "games/play.html?g=" + row[0], mode: meta.mode, unit: meta.unit,
           blurb: row[4] + " " + rule, rule: rule, controls: meta.controls,
-          kit: kit, level: index + 1,
+          kit: "kit-" + row[0], level: 0,
         });
       });
     });
