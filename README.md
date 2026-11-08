@@ -1,16 +1,15 @@
 # 🎮 Pixel Playground
 
-A pocket arcade of **1,026 playable entries**: 16 hand-built cabinets, 110 kit
-challenges from ten reusable engines, and 900 Atlas modes made from 50 engine
-families × 18 rule editions. Every Atlas entry has its own title; the family and
-edition are shown only as play-page context. Plain HTML, CSS and JavaScript — no
+A pocket arcade of **176 playable entries**: 16 hand-built cabinets, 110 kit
+challenges from ten reusable engines, and 50 standalone Atlas cabinets. Each
+Atlas cabinet is its own mechanic — there are no Classic/Rapid editions, no
+family variants and no repeated rule sets. Plain HTML, CSS and JavaScript — no
 frameworks, no build step, no trackers and no network calls after the page loads.
 
 Every entry has a stable id, a card in the searchable hub, a local best score and
-a leaderboard entry. Atlas editions change real rules through a shared session
-layer: timers, lives, speed ramps, mirror, fog, scale, combo, boss phases,
-relic pickups, seeded daily layouts and the combined finale. They are rule
-editions of their families, not 900 separate engine implementations.
+a leaderboard entry. The Atlas cabinets are one screen each, with their own verb,
+scoring rule and failure state. They share the frame loop, input plumbing and
+visual language, not a family difficulty ladder.
 
 ## Play
 
@@ -37,18 +36,31 @@ Pages. The empty `.nojekyll` file keeps asset paths exactly as written.
 ## Layout
 
 ```
-index.html                   1,026-entry hub
-games/play.html              runner for kit games and Atlas modes
+index.html                   176-entry hub
+games/play.html              runner for kit games and Atlas cabinets
 games/<name>.html            bespoke cabinets
 assets/css/style.css         shared design system
 assets/css/refresh.css       refreshed palette
 assets/js/common.js          scores, board, accounts, sound, input
-assets/js/games-data.js      11 bespoke + 110 kit entries
-assets/js/atlas-data.js      50 families + 900 Atlas entries
-assets/js/atlas-titles.js    unique title layer for those 900 entries
-assets/js/atlas.js           Atlas session layer and kit
-assets/js/atlas/0*.js        five files, ten families each
-assets/js/kit.js             runner for the 1,010 runner games
+assets/js/games-data.js      11 core + 110 kit entries
+assets/js/atlas-data.js      50 standalone Atlas cabinets
+assets/js/atlas.js           Atlas frame loop and input plumbing
+assets/js/atlas/0*.js        five files, ten mechanics each
+assets/js/kit.js             runner for the 160 runner games
 assets/js/kits/*.js          the ten original kit engines
 assets/js/originals.js       the five later bespoke entries
 ```
+
+## The 50 Atlas mechanics
+
+The Atlas is no longer a 50 × 18 variant matrix. The 900 edition entries were
+removed and replaced by one standalone cabinet for each of the 50 mechanics:
+timing stops, ring matching, hold-and-release, tether control, balance, juggling,
+catching, dodging, lane switching, flapping, landing, orbit switching, slinging,
+putting, moving-reticle darts, hoop shots, cannon timing, pool, maze routing,
+freehand paths, pipe rotation, laser mirrors, cross-flips, tile merging, sliding
+tiles, crate pushing, nonograms, mines, word finds, falling-word typing,
+arithmetic, number sequences, odd-one-out, pair matching, sequence memory,
+rhythm, whack targets, bubble grouping, fruit slicing, invaders, endless running,
+traffic crossing, fishing timing, patrol stealth, lockpicking, wire cutting,
+parcel sorting, parking, Connect Four and push-your-luck dice.
