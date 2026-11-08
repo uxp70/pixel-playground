@@ -34,7 +34,7 @@
     card.style.setProperty("--accent", game.accent);
     card.setAttribute("data-cat", game.category);
     card.setAttribute("data-search",
-      [game.title, game.category, game.blurb, game.kit || "classic", game.familyTitle, game.editionLabel]
+      [game.title, game.category, game.blurb, game.kit || "classic"]
         .join(" ")
         .toLowerCase());
 

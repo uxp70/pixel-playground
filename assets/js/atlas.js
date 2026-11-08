@@ -1,9 +1,8 @@
 /* Atlas runtime.
 
-   Fifty tiny engines share one session layer: timers, lives, combos, boss
-   phases, mirrored input, fog, scale and the relic pickup. A family only has
-   to implement its own verb. Every edition is a real rule change, not a new
-   sprite on the same difficulty curve. */
+   Fifty standalone engines share the frame loop, scoring and input plumbing.
+   Each cabinet implements its own verb and its own rule; there are no
+   editions or family variants layered on top. */
 (function () {
   "use strict";
 
@@ -32,40 +31,7 @@
   function inRect(x, y, rx, ry, rw, rh) {
     return x >= rx && y >= ry && x <= rx + rw && y <= ry + rh;
   }
-  function mulberry32(seed) {
-    var a = seed >>> 0;
-    return function () {
-      a |= 0;
-      a = (a + 0x6d2b79f5) | 0;
-      var t = Math.imul(a ^ (a >>> 15), 1 | a);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  var EDITION = {
-    classic: { time: 1, lives: 0, speed: 1, ramp: 0 },
-    rapid: { time: 0.55, lives: 0, speed: 1.32, ramp: 0 },
-    marathon: { time: 1.9, lives: 0, speed: 0.92, ramp: 0 },
-    survival: { time: 0, lives: 3, speed: 1.1, ramp: 0.018 },
-    precision: { time: 0, lives: 1, speed: 1.14, ramp: 0.02 },
-    endless: { time: 0, lives: 1, speed: 1.08, ramp: 0.035 },
-    mirror: { time: 1, lives: 0, speed: 1, ramp: 0, mirror: true },
-    fog: { time: 1, lives: 0, speed: 1, ramp: 0, fog: true },
-    tiny: { time: 1, lives: 0, speed: 1, ramp: 0, scale: 0.7 },
-    giant: { time: 1, lives: 0, speed: 1, ramp: 0, scale: 1.25 },
-    zen: { time: 0, lives: 0, speed: 0.95, ramp: 0, zen: true },
-    combo: { time: 1.15, lives: 0, speed: 1, ramp: 0, combo: true },
-    boss: { time: 1.6, lives: 0, speed: 1, ramp: 0, boss: true },
-    sudden: { time: 0.4, lives: 1, speed: 1.36, ramp: 0 },
-    daily: { time: 1, lives: 0, speed: 1, ramp: 0, seeded: true },
-    relic: { time: 1.2, lives: 0, speed: 1, ramp: 0, relic: true },
-    chaos: { time: 1.2, lives: 0, speed: 1, ramp: 0, chaos: true },
-    finale: {
-      time: 1.8, lives: 1, speed: 1.24, ramp: 0.018,
-      fog: true, combo: true, boss: true,
-    },
-  };
+  var BASE = { time: 1, lives: 0, speed: 1, ramp: 0 };
 
   var families = {};
 
@@ -81,15 +47,12 @@
   function begin(api, cfg) {
     cfg = cfg || {};
     var family = familyFor(api);
-    var editionId = api.mode.edition || "classic";
-    var e = EDITION[editionId] || EDITION.classic;
+    var e = BASE;
     var baseTime = cfg.time !== undefined ? cfg.time : family.time || 30;
     var goal = cfg.goal !== undefined ? cfg.goal : family.goal || 10;
     var timeTotal = e.time ? baseTime * e.time : Infinity;
     var timeLeft = timeTotal;
-    var rng = e.seeded
-      ? mulberry32(0x7ecb0de9 + (api.game.family || "").length * 977)
-      : Math.random;
+    var rng = Math.random;
     var ctx = api.ctx;
     var ended = false;
     var start = 0;
@@ -100,8 +63,6 @@
       ctx: ctx,
       W: W, H: H,
       family: family,
-      edition: e,
-      editionId: editionId,
       timeTotal: timeTotal,
       timeLeft: timeLeft,
       baseTime: baseTime,
