@@ -276,5 +276,14 @@
     return { update: update, draw: draw, move: move, key: key };
   }
 
-  K.register("dodge", { modes: MODES, make: make });
+  MODES.forEach(function (mode, index) {
+    K.register(K.engineId(mode.name), {
+      modes: [mode],
+      make: function (api) {
+        api.mode = mode;
+        api.level = index + 1;
+        return make(api);
+      },
+    });
+  });
 })();

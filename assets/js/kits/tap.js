@@ -405,5 +405,14 @@
     return { update: update, draw: draw, tap: tap };
   }
 
-  K.register("tap", { modes: MODES, make: make });
+  MODES.forEach(function (mode, index) {
+    K.register(K.engineId(mode.name), {
+      modes: [mode],
+      make: function (api) {
+        api.mode = mode;
+        api.level = index + 1;
+        return make(api);
+      },
+    });
+  });
 })();
