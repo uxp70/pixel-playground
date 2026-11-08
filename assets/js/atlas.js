@@ -321,14 +321,23 @@
   };
 
   if (window.PP_KIT && window.PP_KIT.register) {
-    window.PP_KIT.register("atlas", {
-      modes: window.PP_ATLAS_MODES || [],
-      make: function (api) {
-        var id = api.game && api.game.family;
-        var make = families[id];
-        if (!make) return fallback(api);
-        return make(api);
-      },
+    (window.PP_ATLAS_FAMILY_LIST || []).forEach(function (family) {
+      var mode = null;
+      var modes = window.PP_ATLAS_MODES || [];
+      for (var i = 0; i < modes.length; i++) {
+        if (modes[i].family === family.id) { mode = modes[i]; break; }
+      }
+      if (!mode) return;
+      window.PP_KIT.register("atlas-" + family.id, {
+        modes: [mode],
+        make: function (api) {
+          api.mode = mode;
+          api.level = 1;
+          var make = families[family.id];
+          if (!make) return fallback(api);
+          return make(api);
+        },
+      });
     });
   }
 })();
