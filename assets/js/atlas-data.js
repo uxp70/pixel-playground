@@ -1,7 +1,7 @@
-/* Atlas catalogue: fifty new game engines, each with eighteen rule variants.
-   Loaded after games-data.js so the hub, leaderboard, account page and play
-   page all see the same 1,026-game catalogue. The mechanics live in
-   assets/js/atlas/*.js; this file is pure data and is safe on every page. */
+/* Atlas catalogue: fifty standalone cabinets, one per mechanic. Loaded after
+   games-data.js so the hub, leaderboard, account page and play page all see
+   the same 176-game catalogue. The mechanics live in assets/js/atlas/*.js;
+   this file is pure data and is safe on every page. */
 (function () {
   "use strict";
 
@@ -245,7 +245,7 @@
       controls: "Tap two cards",
     },
     {
-      id: "simon", title: "Simon", emoji: "🎵", accent: "#22d3ee",
+      id: "simon", title: "Echo Pads", emoji: "🎵", accent: "#22d3ee",
       category: "Brain", pattern: "beams", time: 40, goal: 6,
       blurb: "Watch the pads flash, then play the sequence back.",
       rule: "Repeat the growing sequence without a mistake.",
@@ -358,27 +358,6 @@
     },
   ];
 
-  var EDITIONS = [
-    { id: "classic", label: "Classic", rule: "Classic: score as much as you can before the clock runs out." },
-    { id: "rapid", label: "Rapid", rule: "Rapid: less time and a faster game." },
-    { id: "marathon", label: "Marathon", rule: "Marathon: a longer run at a calmer pace." },
-    { id: "survival", label: "Survival", rule: "Survival: three lives, no clock, rising pressure." },
-    { id: "precision", label: "Precision", rule: "Precision: one mistake ends the run." },
-    { id: "endless", label: "Endless", rule: "Endless: one life, no clock, the pace keeps climbing." },
-    { id: "mirror", label: "Mirror", rule: "Mirror: horizontal controls are reversed." },
-    { id: "fog", label: "Fog", rule: "Fog: only the area around your pointer is lit." },
-    { id: "tiny", label: "Tiny", rule: "Tiny: the whole arena is scaled down." },
-    { id: "giant", label: "Giant", rule: "Giant: the arena is scaled up and the edges are cropped." },
-    { id: "zen", label: "Zen", rule: "Zen: no timer and no lives; reach the target score." },
-    { id: "combo", label: "Combo", rule: "Combo: quick scoring builds a multiplier." },
-    { id: "boss", label: "Boss", rule: "Boss: three phases, each faster than the last." },
-    { id: "sudden", label: "Sudden", rule: "Sudden: one life and a very short clock." },
-    { id: "daily", label: "Daily", rule: "Daily: a fixed layout that is the same every run." },
-    { id: "relic", label: "Relic", rule: "Relic: a bonus star appears; tap it for extra points." },
-    { id: "chaos", label: "Chaos", rule: "Chaos: the speed surges and drops unpredictably." },
-    { id: "finale", label: "Finale", rule: "Finale: one life, fog, combos and three fast phases." },
-  ];
-
   var games = Array.isArray(window.PP_GAMES) ? window.PP_GAMES : [];
   var byId = window.PP_GAME_BY_ID && typeof window.PP_GAME_BY_ID === "object"
     ? window.PP_GAME_BY_ID
@@ -386,60 +365,45 @@
   var familyMap = {};
   var modes = [];
 
-  FAMILIES.forEach(function (family) {
+  // One cabinet per mechanic. The "solo-" prefix keeps Atlas ids distinct
+  // from the bespoke cabinets (for example, the bespoke Simon).
+  FAMILIES.forEach(function (family, index) {
     familyMap[family.id] = family;
-  });
+    var id = "solo-" + family.id;
+    var mode = {
+      name: family.title,
+      rule: family.rule,
+      pattern: family.pattern,
+      hudA: "Score",
+      hudB: "Time",
+      family: family.id,
+      controls: family.controls,
+    };
+    modes.push(mode);
 
-  FAMILIES.forEach(function (family) {
-    EDITIONS.forEach(function (edition, editionIndex) {
-      var id = family.id + "-" + edition.id;
-      var modeName = family.title + " " + edition.label;
-      var rule = family.rule + " " + edition.rule;
-      var mode = {
-        name: modeName,
-        rule: rule,
-        pattern: family.pattern,
-        hudA: "Score",
-        hudB: "Time",
-        family: family.id,
-        edition: edition.id,
-        editionIndex: editionIndex,
-      };
-      modes.push(mode);
-
-      if (byId[id]) return;
-      var game = {
-        id: id,
-        title: modeName,
-        emoji: family.emoji,
-        accent: family.accent,
-        category: family.category,
-        href: "games/play.html?g=" + id,
-        mode: "high",
-        unit: " pts",
-        blurb: family.blurb + " " + edition.rule,
-        rule: rule,
-        controls: family.controls,
-        kit: "atlas",
-        level: 0,
-        family: family.id,
-        edition: edition.id,
-        atlas: true,
-      };
-      games.push(game);
-      byId[id] = game;
-    });
-  });
-
-  // Level is the global index into PP_ATLAS_MODES. Assign after all games exist
-  // so the order is stable and does not depend on interleaved appends.
-  var atlasGames = games.filter(function (game) { return game.atlas; });
-  atlasGames.forEach(function (game, index) {
-    game.level = index + 1;
+    var game = {
+      id: id,
+      title: family.title,
+      emoji: family.emoji,
+      accent: family.accent,
+      category: family.category,
+      href: "games/play.html?g=" + id,
+      mode: "high",
+      unit: " pts",
+      blurb: family.blurb,
+      rule: family.rule,
+      controls: family.controls,
+      kit: "atlas",
+      level: index + 1,
+      family: family.id,
+      atlas: true,
+      standalone: true,
+    };
+    games.push(game);
+    byId[id] = game;
   });
 
   window.PP_ATLAS_MODES = modes;
-  window.PP_ATLAS_EDITIONS = EDITIONS;
   window.PP_ATLAS_FAMILIES = familyMap;
   window.PP_ATLAS_FAMILY_LIST = FAMILIES;
   window.PP_GAMES = games;
