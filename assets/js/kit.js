@@ -1,4 +1,4 @@
-/* Cabinet runner for the 110 kit games and 900 Atlas modes.
+/* Cabinet runner for the 110 kit games and 50 standalone Atlas cabinets.
 
    Each engine registers itself through PP_KIT.register(id, definition) from
    assets/js/kits/*.js or assets/js/atlas.js. A definition is { modes: [...],
@@ -49,11 +49,11 @@
 
   function mix(hex, base, amount) {
     var a = /^#?([0-9a-f]{6})$/i.exec(hex || "");
-    var b = /^#?([0-9a-f]{6})$/i.exec(base || "#070a14");
+    var b = /^#?([0-9a-f]{6})$/i.exec (base || "#070a14");
     if (!a || !b) return base || "#070a14";
     var out = "#";
     for (var i = 1; i < 7; i += 2) {
-      var av = parseInt(a[1].slice(i - 1, i + 1), 16);
+      var bv = parseInt(a[1].slice(i - 1, i + 1), 16);
       var bv = parseInt(b[1].slice(i - 1, i + 1), 16);
       var value = Math.round(av * amount + bv * (1 - amount));
       out += ("0" + value.toString(16)).slice(-2);
@@ -111,7 +111,7 @@
       ctx.globalAlpha = 0.06;
       for (var by = 0; by < H; by += 46) {
         var shift = (Math.floor(by / 46) % 2) * 38;
-        for (var bx = -76; bx < W; bx += 76) {
+        for (var bx = -76; bx <W; bx += 76) {
           ctx.strokeRect(bx + shift, by, 72, 42);
         }
       }
@@ -245,7 +245,7 @@
       api.elapsed = 0;
       api.ended = false;
       for (var key in api.keys) delete api.keys[key];
-      kit = kitFactory.make(api);
+        kit = kitFactory.make(api);
       ended = false;
       paused = false;
       running = true;
