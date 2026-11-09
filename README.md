@@ -3,8 +3,8 @@
 A pocket arcade of **176 playable entries**: 16 hand-built cabinets, 110 kit
 cabinets and 50 standalone Atlas cabinets. Every catalogue entry is a standalone
 unit: the bespoke pages are self-contained, and the 160 runner games each have
-their own one-mode engine registration and unique engine id. Each kit family
-file registers its own eleven one-mode engines; the Atlas files register theirs.
+their own one-mode engine registration and unique engine id. Each of the 110 kit
+games has its own file with a single one-mode engine; the Atlas files register theirs.
 The Atlas has no Classic/Rapid editions, no family variants and no repeated rule
 sets. Plain HTML, CSS and JavaScript — no frameworks, no build step, no trackers
 and no network calls after the page loads.
@@ -50,7 +50,7 @@ assets/js/atlas-data.js      50 standalone Atlas cabinets
 assets/js/atlas.js           Atlas frame loop and input plumbing
 assets/js/atlas/0*.js        five files, ten mechanics each
 assets/js/kit.js             runner for the 160 kit and Atlas engines
-assets/js/kits/*.js          the ten mode libraries behind 110 kit engines
+assets/js/kits/<family>/*.js one file per kit game (110 files)
 assets/js/originals.js       the five later bespoke entries
 ```
 
