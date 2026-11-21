@@ -1,4 +1,4 @@
-/* Bounce Break — a moving paddle puts english on the ball. Standalone cabinet. */
+/* Bounce Break — vertical paddle, sideways ball, a wall on the right. Standalone cabinet. */
 (function () {
   "use strict";
   var K = window.PP_KIT;
@@ -10,77 +10,87 @@
     modes: [MODE],
     make: function (api) {
       var ctx = api.ctx;
-      var padW = 118, px = W / 2 - padW / 2, lastPx = px;
-      var bricks = [], balls = [], lives = 3, score = 0, launched = false;
+      var PX = 48, PW = 18, PH = 112;
+      var py = H / 2 - PH / 2;
+      var bricks = [], balls = [], lives = 3, score = 0, launched = false, over = false;
 
       function wall() {
         bricks = [];
-        var bw = (W - 32) / 6, bh = 24;
-        for (var r = 0; r < 4; r++) {
-          for (var c = 0; c < 6; c++) {
-            bricks.push({ x: 16 + c * bw + 3, y: 76 + r * (bh + 8), w: bw - 6, h: bh, hp: r === 0 ? 2 : 1 });
+        var cols = 4, rows = 7, bw = 52, bh = 28, gx = 8, gy = 8;
+        var x0 = W - 34 - (cols * (bw + gx) - gx);
+        for (var r = 0; r < rows; r++) {
+          for (var c = 0; c < cols; c++) {
+            bricks.push({ x: x0 + c * (bw + gx), y: 64 + r * (bh + gy), w: bw, h: bh, hp: 1 });
           }
         }
       }
 
       function park() {
         launched = false;
-        balls = [{ x: px + padW / 2, y: H - 118, vx: 0, vy: 0, r: 9 }];
+        balls = [{ x: PX + PW + 12, y: py + PH / 2, vx: 0, vy: 0, r: 9 }];
       }
 
       function launch() {
-        if (launched) return;
+        if (launched || over) return;
         launched = true;
-        balls = [{ x: px + padW / 2, y: H - 118, vx: rand(-70, 70), vy: -255, r: 9 }];
+        var vy = rand(-90, 90);
+        balls = [{ x: PX + PW + 12, y: py + PH / 2, vx: Math.sqrt(330 * 330 - vy * vy), vy: vy, r: 9 }];
         api.sfx("pick");
       }
 
-      function lose() {
+      function end() {
+        if (over) return;
+        over = true;
+        api.finish(score);
+      }
+
+      function loseBall() {
         lives--;
         api.sfx("bad");
         api.shake(9);
         api.haptic(24);
-        if (lives <= 0) { api.finish(score); return; }
+        if (lives <= 0) { end(); return; }
         park();
       }
 
       function step(dt) {
-        if (!launched) return;
+        if (!launched || over) return;
         for (var b = balls.length - 1; b >= 0; b--) {
           var ball = balls[b];
           ball.x += ball.vx * dt;
           ball.y += ball.vy * dt;
-          if (ball.x < ball.r + 10) { ball.x = ball.r + 10; ball.vx = Math.abs(ball.vx); api.sfx("pick"); }
-          if (ball.x > W - ball.r - 10) { ball.x = W - ball.r - 10; ball.vx = -Math.abs(ball.vx); api.sfx("pick"); }
           if (ball.y < ball.r + 10) { ball.y = ball.r + 10; ball.vy = Math.abs(ball.vy); api.sfx("pick"); }
-          if (ball.vy > 0 && ball.y > H - 76 && ball.y < H - 44 && Math.abs(ball.x - (px + padW / 2)) < padW / 2 + 10) {
-            ball.y = H - 76;
-            var off = clamp((ball.x - (px + padW / 2)) / (padW / 2), -1, 1);
-            off = clamp(off + clamp((px - lastPx) * 0.06, -0.5, 0.5), -1, 1);
-            ball.vx = off * 238;
-            ball.vy = -Math.sqrt(Math.max(255 * 255 - ball.vx * ball.vx, 90));
+          if (ball.y > H - ball.r - 10) { ball.y = H - ball.r - 10; ball.vy = -Math.abs(ball.vy); api.sfx("pick"); }
+          if (ball.x > W - ball.r - 10) { ball.x = W - ball.r - 10; ball.vx = -Math.abs(ball.vx); api.sfx("pick"); }
+
+          if (ball.vx < 0 && ball.x - ball.r <= PX + PW && ball.x - ball.r >= PX - 14 &&
+              ball.y > py - 10 && ball.y < py + PH + 10) {
+            ball.x = PX + PW + ball.r;
+            var off = clamp((ball.y - (py + PH / 2)) / (PH / 2), -1, 1);
+            ball.vy = off * 232;
+            ball.vx = Math.sqrt(Math.max(330 * 330 - ball.vy * ball.vy, 110));
             api.sfx("pick");
+            api.haptic(4);
           }
+
           for (var i = bricks.length - 1; i >= 0; i--) {
             var br = bricks[i];
             if (ball.x < br.x || ball.x > br.x + br.w || ball.y < br.y || ball.y > br.y + br.h) continue;
             var gapX = Math.min(ball.x - br.x, br.x + br.w - ball.x);
             var gapY = Math.min(ball.y - br.y, br.y + br.h - ball.y);
             if (gapX < gapY) ball.vx *= -1; else ball.vy *= -1;
-            br.hp--;
-            if (br.hp <= 0) {
-              bricks.splice(i, 1);
-              score += 10;
-              api.burst(ball.x, ball.y, api.accent, 5);
-            }
+            bricks.splice(i, 1);
+            score += 10;
+            api.burst(ball.x, ball.y, api.accent, 5);
             break;
           }
-          if (ball.y > H + 30) {
+
+          if (ball.x < -30) {
             balls.splice(b, 1);
-            if (!balls.length) { lose(); if (api.ended) return; }
+            if (!balls.length) { loseBall(); if (over) return; }
           }
         }
-        if (!bricks.length) {
+        if (!bricks.length && !over) {
           score += 80;
           wall();
           park();
@@ -89,14 +99,14 @@
       }
 
       function update(dt) {
-        lastPx = px;
-        if (api.keys.ArrowLeft || api.keys.KeyA) px = clamp(px - 420 * dt, 8, W - padW - 8);
-        if (api.keys.ArrowRight || api.keys.KeyD) px = clamp(px + 420 * dt, 8, W - padW - 8);
-        if (!launched) balls[0].x = px + padW / 2;
+        if (over) return;
+        if (api.keys.ArrowUp || api.keys.KeyW) py = clamp(py - 440 * dt, 12, H - PH - 12);
+        if (api.keys.ArrowDown || api.keys.KeyS) py = clamp(py + 440 * dt, 12, H - PH - 12);
+        if (!launched) { balls[0].y = py + PH / 2; balls[0].x = PX + PW + 12; }
         step(dt / 2);
-        if (api.ended) return;
+        if (over) return;
         step(dt / 2);
-        if (api.ended) return;
+        if (over) return;
         api.hud(score, lives + " lives");
       }
 
@@ -104,18 +114,18 @@
         api.bg();
         for (var i = 0; i < bricks.length; i++) {
           var br = bricks[i];
-          ctx.fillStyle = br.hp > 1 ? "rgba(34,211,238,0.8)" : "rgba(34,211,238,0.45)";
+          ctx.fillStyle = "rgba(34,211,238,0.55)";
           rr(ctx, br.x, br.y, br.w, br.h, 5); ctx.fill();
         }
         ctx.fillStyle = "#f8fafc";
-        rr(ctx, px, H - 62, padW, 14, 7); ctx.fill();
+        rr(ctx, PX, py, PW, PH, 9); ctx.fill();
         ctx.fillStyle = api.accent;
-        rr(ctx, px + 8, H - 62, padW - 16, 5, 2); ctx.fill();
+        rr(ctx, PX + 4, py + 8, PW - 8, PH - 16, 5); ctx.fill();
         for (var j = 0; j < balls.length; j++) {
-          ctx.fillStyle = api.accent;
+          ctx.fillStyle = "#fbbf24";
           ctx.beginPath(); ctx.arc(balls[j].x, balls[j].y, balls[j].r, 0, Math.PI * 2); ctx.fill();
         }
-        if (!launched) api.text("MOVE AS YOU HIT", W / 2, H - 150, 20, "rgba(255,255,255,0.5)");
+        if (!launched) api.text("BOUNCE IT SIDEWAYS", W / 2, H - 48, 19, "rgba(255,255,255,0.5)");
       }
 
       wall();
@@ -125,9 +135,9 @@
         update: update,
         draw: draw,
         tap: launch,
-        move: function (x) { px = clamp(x - padW / 2, 8, W - padW - 8); },
+        move: function (x, y) { py = clamp(y - PH / 2, 12, H - PH - 12); },
         key: function (code) { if (code === "Space" || code === "Enter") launch(); },
-        swipe: function (dx) { px = clamp(px + dx * 46, 8, W - padW - 8); },
+        swipe: function (dx, dy) { py = clamp(py + dy * 40, 12, H - PH - 12); },
       };
     },
   });

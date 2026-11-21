@@ -1,106 +1,106 @@
-/* Pattern Sum — extend a number sequence. Standalone cabinet. */
+/* Pattern Sum — tap the tiles that add up to the target. Standalone cabinet. */
 (function () {
   "use strict";
   var K = window.PP_KIT;
   var W = K.W, H = K.H, rand = K.rand, rr = K.roundRect;
-
-  var MODE = { name: "Pattern Sum", level: 9, hudA: "Correct", hudB: "Time", pattern: "beams" };
+  var MODE = { name: "Pattern Sum", level: 9, hudA: "Sums", hudB: "Time", pattern: "beams" };
 
   K.register(K.engineId(MODE.name), {
     modes: [MODE],
     make: function (api) {
       var ctx = api.ctx;
-      var TOTAL = 8, LIMIT = 12;
-      var index = 0, correct = 0, picked = -1, wasRight = false, paused = 0;
-      var timeLeft = LIMIT, q = null;
+      var cols = 4, rows = 3, cw = 116, ch = 88, gx = 12, gy = 12;
+      var boardW = cols * cw + (cols - 1) * gx;
+      var bx = (W - boardW) / 2, by = 250;
+      var tiles = [], target = 0, selected = [], score = 0, timeLeft = 30, done = false;
 
-      function optionsFor(answer) {
-        var list = [answer], guard = 0;
-        while (list.length < 4 && guard++ < 80) {
-          var n = answer + Math.round(rand(-8, 8));
-          if (n > 0 && n !== answer && list.indexOf(n) === -1) list.push(n);
-        }
-        while (list.length < 4) list.push(answer + list.length + 2);
-        return list.sort(function () { return Math.random() - 0.5; });
+      function cell(i) {
+        return { x: bx + (i % cols) * (cw + gx), y: by + Math.floor(i / cols) * (ch + gy), w: cw, h: ch };
       }
 
-      function ask() {
-        var a = 2 + Math.floor(rand(0, 9));
-        var b = 2 + Math.floor(rand(0, 7));
-        var seq = [a, a + b, a + b * 2, a + b * 3];
-        var answer = a + b * 4;
-        q = { text: seq.join("  ·  "), hint: "what comes next?", answer: answer, options: optionsFor(answer) };
-        picked = -1;
-        wasRight = false;
-        paused = 0;
-        timeLeft = LIMIT;
+      function deal() {
+        tiles = [];
+        for (var i = 0; i < cols * rows; i++) tiles.push(1 + Math.floor(rand(0, 9)));
+        var order = [];
+        for (var j = 0; j < tiles.length; j++) order.push(j);
+        order.sort(function () { return Math.random() - 0.5; });
+        var count = 2 + Math.floor(rand(0, 3));
+        var picks = order.slice(0, count);
+        target = 0;
+        for (var k = 0; k < picks.length; k++) target += tiles[picks[k]];
+        selected = [];
       }
 
-      function advance() {
-        index++;
-        if (index >= TOTAL) { api.finish(correct); return; }
-        ask();
+      function sum() {
+        var total = 0;
+        for (var i = 0; i < selected.length; i++) total += tiles[selected[i]];
+        return total;
       }
 
-      function rect(i) {
-        var w = (W - 130) / 2, h = 82;
-        return { x: 47 + (i % 2) * (w + 36), y: 370 + Math.floor(i / 2) * (h + 18), w: w, h: h };
+      function end() {
+        if (done) return;
+        done = true;
+        api.finish(score);
       }
-
-      ask();
 
       function update(dt) {
-        if (paused > 0) {
-          paused -= dt;
-          if (paused <= 0) advance();
-          return;
-        }
+        if (done) return;
         timeLeft -= dt;
-        if (timeLeft <= 0) {
-          api.sfx("bad");
-          api.shake(5);
-          picked = -1;
-          paused = 0.5;
-          return;
-        }
-        api.hud(correct, Math.ceil(timeLeft) + "s");
+        if (timeLeft <= 0) { end(); return; }
+        api.hud(score, Math.ceil(timeLeft) + "s");
       }
 
       function draw() {
         api.bg();
-        api.text(q.hint, W / 2, 100, 17, "rgba(255,255,255,0.45)");
-        api.text(q.text, W / 2, 208, 38, "#f8fafc");
-        api.text("?", W / 2, 280, 40, api.accent);
-        for (var i = 0; i < q.options.length; i++) {
-          var r = rect(i);
-          ctx.fillStyle = picked === i ? (wasRight ? "#22c55e" : "#ef4444") : "rgba(255,255,255,0.09)";
-          if (paused > 0 && q.options[i] === q.answer) ctx.fillStyle = "#22c55e";
-          rr(ctx, r.x, r.y, r.w, r.h, 16); ctx.fill();
-          api.text(String(q.options[i]), r.x + r.w / 2, r.y + r.h / 2 + 2, 32, "#f8fafc");
+        api.text("TARGET " + target, W / 2, 96, 38, api.accent);
+        api.text("TAP TILES UNTIL THEY ADD UP", W / 2, 142, 15, "rgba(255,255,255,0.45)");
+        var running = sum();
+        api.text(running + " / " + target, W / 2, 190, 24,
+          running > target ? "#f87171" : "rgba(255,255,255,0.5)");
+        for (var i = 0; i < tiles.length; i++) {
+          var r = cell(i);
+          var on = selected.indexOf(i) >= 0;
+          ctx.fillStyle = on ? "rgba(251,191,36,0.62)" : "rgba(255,255,255,0.08)";
+          rr(ctx, r.x, r.y, r.w, r.h, 14); ctx.fill();
+          if (on) {
+            ctx.strokeStyle = "rgba(255,255,255,0.7)";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+          }
+          api.text(String(tiles[i]), r.x + r.w / 2, r.y + r.h / 2 + 2, 32, "#f8fafc");
         }
       }
 
       function tap(x, y) {
-        if (paused > 0) return;
-        for (var i = 0; i < q.options.length; i++) {
-          var r = rect(i);
+        if (done) return;
+        for (var i = 0; i < tiles.length; i++) {
+          var r = cell(i);
           if (x < r.x || x > r.x + r.w || y < r.y || y > r.y + r.h) continue;
-          picked = i;
-          wasRight = q.options[i] === q.answer;
-          if (wasRight) {
-            correct++;
-            api.sfx("good");
-            api.burst(x, y, "#22c55e", 8);
-            api.haptic(6);
-          } else {
+          var at = selected.indexOf(i);
+          if (at >= 0) selected.splice(at, 1);
+          else selected.push(i);
+          var total = sum();
+          if (total > target) {
+            timeLeft -= 2;
+            selected = [];
             api.sfx("bad");
-            api.shake(7);
-            api.haptic(14);
+            api.shake(5);
+            api.haptic(12);
+          } else if (total === target && selected.length >= 2) {
+            score++;
+            timeLeft = Math.min(45, timeLeft + 1.5);
+            api.sfx("good");
+            api.burst(r.x + r.w / 2, r.y + r.h / 2, "#fbbf24", 10);
+            api.haptic(5);
+            deal();
+          } else {
+            api.sfx("pick");
           }
-          paused = 0.55;
           return;
         }
       }
+
+      deal();
 
       return { update: update, draw: draw, tap: tap };
     },

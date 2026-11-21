@@ -1,101 +1,137 @@
-/* Memory Tide — three lives, fast 4x4 sequences. Standalone cabinet. */
+/* Memory Tide — turn over pairs before the tide turns. Standalone cabinet. */
 (function () {
   "use strict";
   var K = window.PP_KIT;
-  var W = K.W, H = K.H, rand = K.rand, rr = K.roundRect;
-  var MODE = { name: "Memory Tide", level: 11, hudA: "Rounds", hudB: "Lives", pattern: "stars" };
+  var W = K.W, H = K.H, rr = K.roundRect;
+  var MODE = { name: "Memory Tide", level: 11, hudA: "Rounds", hudB: "Lives", pattern: "waves" };
 
   K.register(K.engineId(MODE.name), {
     modes: [MODE],
     make: function (api) {
       var ctx = api.ctx;
-      var size = 4, cell = 112, gap = 10;
+      var size = 4, cell = 108, gap = 10;
       var board = size * cell + (size - 1) * gap;
-      var bx = (W - board) / 2, by = 110;
-      var seq = [], phase = "show", shown = 0, lit = -1, litFor = 0, wait = 0.45, rounds = 0, inputAt = 0, lives = 3;
+      var bx = (W - board) / 2, by = 112;
+      var glyphs = ["●", "▲", "■", "◆", "✦", "✚", "◐", "▣"];
+      var cards = [], first = -1, second = -1, lock = 0;
+      var rounds = 0, lives = 3, timeLeft = 50, done = false;
 
       function pad(i) {
         return { x: bx + (i % size) * (cell + gap), y: by + Math.floor(i / size) * (cell + gap), w: cell, h: cell };
       }
-      function push() { seq.push(Math.floor(rand(0, size * size))); }
-      function reset() { phase = "show"; shown = 0; wait = 0.3; lit = -1; inputAt = 0; }
-      function lose() {
-        if (lives > 1) {
-          lives--;
-          seq = [];
-          push();
-          reset();
-          api.sfx("bad");
-          api.shake(10);
-          api.haptic([20, 45, 30]);
-          return;
+
+      function deal() {
+        cards = [];
+        for (var k = 0; k < 8; k++) {
+          cards.push({ kind: k, up: false, done: false });
+          cards.push({ kind: k, up: false, done: false });
         }
-        api.sfx("bad");
-        api.shake(12);
+        for (var i = cards.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var tmp = cards[i]; cards[i] = cards[j]; cards[j] = tmp;
+        }
+        first = -1;
+        second = -1;
+        lock = 0;
+      }
+
+      function remaining() {
+        var n = 0;
+        for (var i = 0; i < cards.length; i++) if (!cards[i].done) n++;
+        return n;
+      }
+
+      function end() {
+        if (done) return;
+        done = true;
         api.finish(rounds);
       }
 
-      push(); push(); push();
-
       function update(dt) {
-        if (litFor > 0) {
-          litFor -= dt;
-          if (litFor <= 0) { lit = -1; wait = 0.1; }
-          api.hud(rounds, lives + " lives");
-          return;
+        if (done) return;
+        if (lock > 0) {
+          lock -= dt;
+          if (lock <= 0) {
+            if (first >= 0 && second >= 0 && cards[first].kind !== cards[second].kind) {
+              cards[first].up = false;
+              cards[second].up = false;
+            }
+            first = -1;
+            second = -1;
+          }
         }
-        if (phase !== "show") { api.hud(rounds, lives + " lives"); return; }
-        if (wait > 0) { wait -= dt; api.hud(rounds, lives + " lives"); return; }
-        if (shown < seq.length) {
-          lit = seq[shown++];
-          litFor = 0.18;
-          api.sfx("pick");
-          return;
-        }
-        phase = "input";
-        inputAt = 0;
+        timeLeft -= dt;
+        if (timeLeft <= 0) { end(); return; }
         api.hud(rounds, lives + " lives");
       }
 
       function draw() {
         api.bg();
-        for (var i = 0; i < size * size; i++) {
-          var r = pad(i), on = lit === i;
-          ctx.fillStyle = on ? api.accent : "rgba(255,255,255,0.05)";
-          rr(ctx, r.x, r.y, r.w, r.h, 12); ctx.fill();
-          if (on) {
-            ctx.strokeStyle = "rgba(255,255,255,0.85)";
-            ctx.lineWidth = 3;
+        for (var i = 0; i < cards.length; i++) {
+          var r = pad(i), c = cards[i];
+          if (c.up || c.done) {
+            ctx.fillStyle = c.done ? "rgba(255,255,255,0.09)" : api.accent;
+            rr(ctx, r.x, r.y, r.w, r.h, 14); ctx.fill();
+            api.text(glyphs[c.kind], r.x + r.w / 2, r.y + r.h / 2 + 2, 46,
+              c.done ? "rgba(255,255,255,0.28)" : "#06121a");
+          } else {
+            ctx.fillStyle = "rgba(255,255,255,0.07)";
+            rr(ctx, r.x, r.y, r.w, r.h, 14); ctx.fill();
+            ctx.strokeStyle = "rgba(255,255,255,0.12)";
+            ctx.lineWidth = 2;
             ctx.stroke();
+            api.text("?", r.x + r.w / 2, r.y + r.h / 2 + 2, 34, "rgba(255,255,255,0.35)");
           }
         }
-        api.text(phase === "show" ? "WATCH" : "REPEAT", W / 2, 66, 20, "rgba(255,255,255,0.5)");
+        ctx.fillStyle = "rgba(255,255,255,0.08)";
+        rr(ctx, bx, 88, board, 8, 4); ctx.fill();
+        ctx.fillStyle = timeLeft < 12 ? "#f87171" : api.accent;
+        rr(ctx, bx, 88, board * Math.max(0, timeLeft / 50), 8, 4); ctx.fill();
+        api.text("MATCH THE PAIRS", W / 2, 62, 18, "rgba(255,255,255,0.5)");
+        api.text("TIDE " + Math.ceil(timeLeft) + "s", W / 2, H - 42, 16, "rgba(255,255,255,0.38)");
+      }
+
+      function flip(i) {
+        if (lock > 0 || cards[i].up || cards[i].done) return;
+        cards[i].up = true;
+        api.sfx("pick");
+        api.haptic(3);
+        if (first < 0) { first = i; return; }
+        second = i;
+        if (cards[first].kind === cards[second].kind) {
+          cards[first].done = true;
+          cards[second].done = true;
+          first = -1;
+          second = -1;
+          api.sfx("good");
+          api.burst(pad(i).x + cell / 2, pad(i).y + cell / 2, api.accent, 8);
+          if (remaining() === 0) {
+            rounds++;
+            timeLeft = Math.min(80, timeLeft + 10);
+            api.sfx("win");
+            deal();
+          }
+        } else {
+          lives--;
+          api.sfx("bad");
+          api.shake(4);
+          lock = 0.75;
+          if (lives <= 0) end();
+        }
       }
 
       function tap(x, y) {
-        if (phase !== "input" || litFor > 0) return;
-        for (var i = 0; i < size * size; i++) {
+        for (var i = 0; i < cards.length; i++) {
           var r = pad(i);
           if (x < r.x || x > r.x + r.w || y < r.y || y > r.y + r.h) continue;
-          if (seq[inputAt] !== i) { lose(); return; }
-          lit = i; litFor = 0.1; inputAt++;
-          api.sfx("pick");
-          if (inputAt >= seq.length) { rounds++; push(); reset(); }
+          flip(i);
           return;
         }
       }
 
-      return {
-        update: update, draw: draw, tap: tap,
-        key: function (code) {
-          var m = /^Digit([1-9])$/.exec(code);
-          if (!m || phase !== "input") return;
-          var i = Number(m[1]) - 1;
-          if (seq[inputAt] !== i) { lose(); return; }
-          inputAt++;
-          if (inputAt >= seq.length) { rounds++; push(); reset(); }
-        },
-      };
+      deal();
+
+      return { update: update, draw: draw, tap: tap };
     },
   });
 })();

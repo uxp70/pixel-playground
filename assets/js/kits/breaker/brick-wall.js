@@ -1,4 +1,4 @@
-/* Brick Wall — a classic four-row wall and three lives. Standalone cabinet. */
+/* Brick Wall — break the wall before it reaches the crush line. Standalone cabinet. */
 (function () {
   "use strict";
   var K = window.PP_KIT;
@@ -11,14 +11,15 @@
     make: function (api) {
       var ctx = api.ctx;
       var padW = 118, px = W / 2 - padW / 2;
-      var bricks = [], balls = [], lives = 3, score = 0, launched = false;
+      var bricks = [], balls = [], lives = 3, score = 0, launched = false, over = false;
+      var LINE = H - 86;
 
       function wall() {
         bricks = [];
         var bw = (W - 32) / 6, bh = 24;
         for (var r = 0; r < 4; r++) {
           for (var c = 0; c < 6; c++) {
-            bricks.push({ x: 16 + c * bw + 3, y: 76 + r * (bh + 8), w: bw - 6, h: bh, hp: r === 0 ? 2 : 1 });
+            bricks.push({ x: 16 + c * bw + 3, y: 62 + r * (bh + 8), w: bw - 6, h: bh, hp: r === 0 ? 2 : 1 });
           }
         }
       }
@@ -29,23 +30,28 @@
       }
 
       function launch() {
-        if (launched) return;
+        if (launched || over) return;
         launched = true;
         balls = [{ x: px + padW / 2, y: H - 118, vx: rand(-70, 70), vy: -255, r: 9 }];
         api.sfx("pick");
       }
 
-      function lose() {
+      function end() {
+        if (over) return;
+        over = true;
+        api.finish(score);
+      }
+
+      function hitLife() {
         lives--;
         api.sfx("bad");
-        api.shake(9);
+        api.shake(10);
         api.haptic(24);
-        if (lives <= 0) { api.finish(score); return; }
-        park();
+        if (lives <= 0) end();
       }
 
       function step(dt) {
-        if (!launched) return;
+        if (!launched || over) return;
         for (var b = balls.length - 1; b >= 0; b--) {
           var ball = balls[b];
           ball.x += ball.vx * dt;
@@ -77,10 +83,14 @@
           }
           if (ball.y > H + 30) {
             balls.splice(b, 1);
-            if (!balls.length) { lose(); if (api.ended) return; }
+            if (!balls.length) {
+              hitLife();
+              if (over) return;
+              park();
+            }
           }
         }
-        if (!bricks.length) {
+        if (!bricks.length && !over) {
           score += 80;
           wall();
           park();
@@ -89,18 +99,35 @@
       }
 
       function update(dt) {
+        if (over) return;
         if (api.keys.ArrowLeft || api.keys.KeyA) px = clamp(px - 420 * dt, 8, W - padW - 8);
         if (api.keys.ArrowRight || api.keys.KeyD) px = clamp(px + 420 * dt, 8, W - padW - 8);
         if (!launched) balls[0].x = px + padW / 2;
+
+        var fall = 7 + score * 0.025;
+        for (var i = bricks.length - 1; i >= 0; i--) {
+          bricks[i].y += fall * dt;
+          if (bricks[i].y + bricks[i].h >= LINE) {
+            bricks.splice(i, 1);
+            hitLife();
+            if (over) return;
+          }
+        }
+
         step(dt / 2);
-        if (api.ended) return;
+        if (over) return;
         step(dt / 2);
-        if (api.ended) return;
+        if (over) return;
         api.hud(score, lives + " lives");
       }
 
       function draw() {
         api.bg();
+        ctx.strokeStyle = "rgba(248,113,113,0.55)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([12, 10]);
+        ctx.beginPath(); ctx.moveTo(0, LINE); ctx.lineTo(W, LINE); ctx.stroke();
+        ctx.setLineDash([]);
         for (var i = 0; i < bricks.length; i++) {
           var br = bricks[i];
           ctx.fillStyle = br.hp > 1 ? "rgba(244,114,182,0.9)" : "rgba(244,114,182,0.55)";
@@ -112,7 +139,8 @@
           ctx.fillStyle = api.accent;
           ctx.beginPath(); ctx.arc(balls[j].x, balls[j].y, balls[j].r, 0, Math.PI * 2); ctx.fill();
         }
-        if (!launched) api.text("TAP TO SERVE", W / 2, H - 150, 22, "rgba(255,255,255,0.5)");
+        if (!launched) api.text("THE WALL IS COMING DOWN", W / 2, H - 150, 20, "rgba(255,255,255,0.5)");
+        else api.text("KEEP IT ABOVE THE LINE", W / 2, LINE - 14, 13, "rgba(248,113,113,0.5)");
       }
 
       wall();

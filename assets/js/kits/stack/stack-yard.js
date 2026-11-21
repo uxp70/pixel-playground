@@ -1,90 +1,111 @@
-/* Stack Yard — random-width salvage makes every floor a gamble. Standalone cabinet. */
+/* Stack Yard — catch the falling crates and build the pile. Standalone cabinet. */
 (function () {
   "use strict";
   var K = window.PP_KIT;
   var W = K.W, H = K.H, rand = K.rand, clamp = K.clamp, rr = K.roundRect;
-
-  var MODE = { name: "Stack Yard", level: 9, hudA: "Floors", hudB: "Width", pattern: "rain" };
+  var MODE = { name: "Stack Yard", level: 9, hudA: "Floors", hudB: "Lives", pattern: "rain" };
 
   K.register(K.engineId(MODE.name), {
     modes: [MODE],
     make: function (api) {
       var ctx = api.ctx;
-      var blockH = 28;
-      var startW = 250;
-      var speed = 145;
-      var blocks = [{ x: (W - startW) / 2, w: startW, y: H - 150 }];
-      var cam = 0;
-      var floors = 0;
-      var moving = next(blocks[0]);
+      var CH = 24;
+      var cart = { x: W / 2 - 78, w: 156, y: H - 92, h: 28 };
+      var stack = [], crates = [], floors = 0, lives = 3, spawn = 0.35, done = false;
 
-      function next(prev) {
-        var fromLeft = blocks.length % 2 === 1;
-        var w = clamp(prev.w + rand(-55, 55), 70, 270);
-        return { x: fromLeft ? 0 : W - w, w: w, y: prev.y - blockH, dir: fromLeft ? 1 : -1 };
+      function end() {
+        if (done) return;
+        done = true;
+        api.finish(floors);
       }
 
       function drop() {
-        var top = blocks[blocks.length - 1];
-        var left = Math.max(moving.x, top.x);
-        var right = Math.min(moving.x + moving.w, top.x + top.w);
-        var overlap = right - left;
-        if (overlap <= 5) {
-          api.sfx("bad");
-          api.shake(12);
-          api.haptic([20, 50, 30]);
-          api.finish(floors);
-          return;
-        }
-        var perfect = Math.abs(moving.x - top.x) <= 8;
-        var w = perfect ? Math.min(startW + 40, moving.w + 6) : overlap;
-        var placed = { x: perfect ? top.x + top.w / 2 - w / 2 : left, w: w, y: moving.y };
-        if (perfect) {
-          api.sfx("good");
-          api.burst(placed.x + w / 2, placed.y, api.accent, 12);
-          api.haptic(10);
-        } else {
-          api.sfx("pick");
-          api.shake(3);
-        }
-        blocks.push(placed);
+        var w = rand(46, 86);
+        crates.push({ x: rand(18, W - w - 18), y: -34, w: w, h: CH, vy: 155 + floors * 7 });
+        spawn = Math.max(0.52, 1.28 - floors * 0.035);
+      }
+
+      function catchCrate(c) {
+        var dx = clamp(c.x - cart.x, 2, cart.w - c.w - 2);
+        stack.push({ dx: dx, w: c.w });
+        if (stack.length > 14) stack.shift();
         floors++;
-        moving = next(placed);
+        api.sfx("good");
+        api.burst(c.x + c.w / 2, cart.y - 6, api.accent, 8);
+        api.haptic(4);
+      }
+
+      function miss() {
+        lives--;
+        api.sfx("bad");
+        api.shake(8);
+        api.haptic([18, 40, 24]);
+        if (lives <= 0) end();
       }
 
       function update(dt) {
-        moving.x += moving.dir * speed * dt;
-        if (moving.x < 0) { moving.x = 0; moving.dir = 1; }
-        if (moving.x + moving.w > W) { moving.x = W - moving.w; moving.dir = -1; }
-        cam -= (Math.min(0, moving.y - H * 0.46) - cam) * Math.min(1, dt * 6);
-        api.hud(floors, Math.round(moving.w) + " px");
+        if (done) return;
+        if (api.keys.ArrowLeft || api.keys.KeyA) cart.x = clamp(cart.x - 430 * dt, 8, W - cart.w - 8);
+        if (api.keys.ArrowRight || api.keys.KeyD) cart.x = clamp(cart.x + 430 * dt, 8, W - cart.w - 8);
+
+        spawn -= dt;
+        if (spawn <= 0) drop();
+
+        for (var i = crates.length - 1; i >= 0; i--) {
+          var c = crates[i];
+          c.y += c.vy * dt;
+          if (c.y + c.h >= cart.y && c.y + c.h <= cart.y + cart.h + 14 &&
+              c.x + c.w > cart.x && c.x < cart.x + cart.w) {
+            catchCrate(c);
+            crates.splice(i, 1);
+            continue;
+          }
+          if (c.y + c.h > H) {
+            crates.splice(i, 1);
+            miss();
+            if (done) return;
+          }
+        }
+        api.hud(floors, lives + " lives");
       }
 
       function draw() {
         api.bg();
-        ctx.save();
-        ctx.translate(0, -cam);
-        for (var i = 0; i < blocks.length; i++) {
-          var b = blocks[i];
-          ctx.fillStyle = i === blocks.length - 1
-            ? api.accent
-            : (i % 2 ? "rgba(251,146,60,0.42)" : "rgba(148,163,184,0.3)");
-          rr(ctx, b.x, b.y, b.w, blockH - 3, 3);
-          ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,0.05)";
+        ctx.fillRect(0, cart.y + 8, W, H - cart.y);
+        for (var i = 0; i < stack.length; i++) {
+          var b = stack[i];
+          var y = cart.y - (i + 1) * (CH + 2);
+          ctx.fillStyle = i % 2 ? "rgba(251,146,60,0.7)" : "rgba(244,114,182,0.62)";
+          rr(ctx, cart.x + b.dx, y, b.w, CH, 3); ctx.fill();
           ctx.fillStyle = "rgba(0,0,0,0.18)";
-          ctx.fillRect(b.x + 4, b.y + blockH - 8, b.w - 8, 2);
+          ctx.fillRect(cart.x + b.dx + 4, y + CH - 7, b.w - 8, 2);
         }
-        ctx.fillStyle = "#f8fafc";
-        rr(ctx, moving.x, moving.y, moving.w, blockH - 3, 3);
-        ctx.fill();
-        ctx.restore();
+        for (var j = 0; j < crates.length; j++) {
+          var c = crates[j];
+          ctx.fillStyle = "#f8fafc";
+          rr(ctx, c.x, c.y, c.w, c.h, 3); ctx.fill();
+          ctx.fillStyle = "rgba(0,0,0,0.16)";
+          ctx.fillRect(c.x + 5, c.y + 5, c.w - 10, 3);
+        }
+        ctx.fillStyle = api.accent;
+        rr(ctx, cart.x, cart.y, cart.w, cart.h, 6); ctx.fill();
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.beginPath(); ctx.arc(cart.x + 24, cart.y + cart.h + 4, 10, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cart.x + cart.w - 24, cart.y + cart.h + 4, 10, 0, Math.PI * 2); ctx.fill();
+        api.text("CATCH THE CRATES", W / 2, 62, 20, "rgba(255,255,255,0.5)");
+      }
+
+      function place(x) {
+        cart.x = clamp(x - cart.w / 2, 8, W - cart.w - 8);
       }
 
       return {
         update: update,
         draw: draw,
-        tap: drop,
-        key: function (code) { if (code === "Space" || code === "Enter") drop(); },
+        tap: function (x) { place(x); },
+        move: function (x) { place(x); },
+        swipe: function (dx) { cart.x = clamp(cart.x + dx * 48, 8, W - cart.w - 8); },
       };
     },
   });

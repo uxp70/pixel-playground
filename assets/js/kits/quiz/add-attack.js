@@ -1,105 +1,100 @@
-/* Add Attack — fifteen additions, five seconds each. Standalone cabinet. */
+/* Add Attack — tap falling pairs that add up to the target. Standalone cabinet. */
 (function () {
   "use strict";
   var K = window.PP_KIT;
   var W = K.W, H = K.H, rand = K.rand, rr = K.roundRect;
-
-  var MODE = { name: "Add Attack", level: 6, hudA: "Correct", hudB: "Time", pattern: "rain" };
+  var MODE = { name: "Add Attack", level: 6, hudA: "Sums", hudB: "Lives", pattern: "rain" };
 
   K.register(K.engineId(MODE.name), {
     modes: [MODE],
     make: function (api) {
       var ctx = api.ctx;
-      var TOTAL = 15, LIMIT = 5;
-      var index = 0, correct = 0, picked = -1, wasRight = false, paused = 0;
-      var timeLeft = LIMIT, q = null;
+      var LINE = H - 66;
+      var orbs = [], selected = null, target = 10;
+      var score = 0, lives = 3, next = 0.4, done = false;
 
-      function optionsFor(answer) {
-        var list = [answer], guard = 0;
-        while (list.length < 4 && guard++ < 80) {
-          var n = answer + Math.round(rand(-6, 6));
-          if (n !== answer && list.indexOf(n) === -1) list.push(n);
-        }
-        while (list.length < 4) list.push(answer + list.length);
-        return list.sort(function () { return Math.random() - 0.5; });
+      function spawn() {
+        if (orbs.length > 12) return;
+        var r = rand(20, 27);
+        orbs.push({
+          x: rand(r + 16, W - r - 16), y: -r - 8, r: r,
+          value: 1 + Math.floor(rand(0, 9)), vy: 52 + score * 2.2,
+        });
       }
 
-      function ask() {
-        var a = 3 + Math.floor(rand(0, 16));
-        var b = 3 + Math.floor(rand(0, 16));
-        var answer = a + b;
-        q = { text: a + " + " + b + " = ?", answer: answer, options: optionsFor(answer) };
-        picked = -1;
-        wasRight = false;
-        paused = 0;
-        timeLeft = LIMIT;
+      function end() {
+        if (done) return;
+        done = true;
+        api.finish(score);
       }
-
-      function advance() {
-        index++;
-        if (index >= TOTAL) { api.finish(correct); return; }
-        ask();
-      }
-
-      function rect(i) {
-        var w = 122, h = 92;
-        var x = 54 + i * (w + 16);
-        return { x: x, y: 430, w: w, h: h };
-      }
-
-      ask();
 
       function update(dt) {
-        if (paused > 0) {
-          paused -= dt;
-          if (paused <= 0) advance();
-          return;
+        if (done) return;
+        next -= dt;
+        if (next <= 0) {
+          spawn();
+          next = Math.max(0.45, 0.95 - score * 0.015);
         }
-        timeLeft -= dt;
-        if (timeLeft <= 0) {
-          api.sfx("bad");
-          api.shake(6);
-          picked = -1;
-          paused = 0.38;
-          return;
+        for (var i = orbs.length - 1; i >= 0; i--) {
+          orbs[i].y += orbs[i].vy * dt;
+          if (orbs[i].y - orbs[i].r > LINE) {
+            if (selected === orbs[i]) selected = null;
+            orbs.splice(i, 1);
+            lives--;
+            api.sfx("bad");
+            api.shake(7);
+            api.haptic(18);
+            if (lives <= 0) { end(); return; }
+          }
         }
-        api.hud(correct, Math.ceil(timeLeft) + "s");
+        api.hud(score, lives + " lives");
       }
 
       function draw() {
         api.bg();
-        ctx.fillStyle = "rgba(248,113,113,0.12)";
-        rr(ctx, 30, 90, W - 60, 260, 26); ctx.fill();
-        api.text(q.text, W / 2, 220, 62, "#f8fafc");
-        api.text(Math.ceil(timeLeft) + "s", W / 2, 300, 26, timeLeft < 2 ? "#f87171" : api.accent);
-        for (var i = 0; i < q.options.length; i++) {
-          var r = rect(i);
-          ctx.fillStyle = picked === i ? (wasRight ? "#22c55e" : "#ef4444") : "rgba(255,255,255,0.11)";
-          if (paused > 0 && q.options[i] === q.answer) ctx.fillStyle = "#22c55e";
-          rr(ctx, r.x, r.y, r.w, r.h, 12); ctx.fill();
-          api.text(String(q.options[i]), r.x + r.w / 2, r.y + r.h / 2 + 2, 30, "#f8fafc");
+        ctx.fillStyle = "rgba(255,255,255,0.06)";
+        rr(ctx, W / 2 - 150, 52, 300, 70, 18); ctx.fill();
+        api.text("MAKE " + target, W / 2, 88, 28, api.accent);
+        ctx.strokeStyle = "rgba(248,113,113,0.55)";
+        ctx.lineWidth = 3;
+        ctx.setLineDash([14, 10]);
+        ctx.beginPath(); ctx.moveTo(0, LINE); ctx.lineTo(W, LINE); ctx.stroke();
+        ctx.setLineDash([]);
+        for (var i = 0; i < orbs.length; i++) {
+          var o = orbs[i];
+          ctx.fillStyle = selected === o ? api.accent : "rgba(255,255,255,0.13)";
+          ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2); ctx.fill();
+          if (selected === o) {
+            ctx.strokeStyle = "#f8fafc";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+          }
+          api.text(String(o.value), o.x, o.y + 2, 24, "#f8fafc");
         }
-        api.text((index + 1) + " / " + TOTAL, W / 2, 560, 16, "rgba(255,255,255,0.35)");
+        api.text("TAP TWO NUMBERS THAT ADD TO THE TARGET", W / 2, LINE + 30, 13, "rgba(255,255,255,0.38)");
       }
 
       function tap(x, y) {
-        if (paused > 0) return;
-        for (var i = 0; i < q.options.length; i++) {
-          var r = rect(i);
-          if (x < r.x || x > r.x + r.w || y < r.y || y > r.y + r.h) continue;
-          picked = i;
-          wasRight = q.options[i] === q.answer;
-          if (wasRight) {
-            correct++;
+        if (done) return;
+        for (var i = orbs.length - 1; i >= 0; i--) {
+          var o = orbs[i];
+          var dx = x - o.x, dy = y - o.y;
+          if (dx * dx + dy * dy > (o.r + 4) * (o.r + 4)) continue;
+          if (!selected) { selected = o; api.sfx("pick"); return; }
+          if (selected === o) { selected = null; return; }
+          if (selected.value + o.value === target) {
+            score++;
             api.sfx("good");
-            api.burst(x, y, "#22c55e", 8);
-            api.haptic(5);
+            api.burst(o.x, o.y, api.accent, 8);
+            api.haptic(4);
+            orbs = orbs.filter(function (orb) { return orb !== o && orb !== selected; });
+            selected = null;
+            target = 6 + Math.floor(rand(0, 10));
           } else {
+            selected = o;
             api.sfx("bad");
-            api.shake(8);
-            api.haptic(14);
+            api.shake(3);
           }
-          paused = 0.36;
           return;
         }
       }

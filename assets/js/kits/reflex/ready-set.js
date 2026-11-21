@@ -1,4 +1,4 @@
-/* Ready Set — a false start costs a full second. Standalone cabinet. */
+/* Ready Set — three lights cycle; only green is safe. Standalone cabinet. */
 (function () {
   "use strict";
   var K = window.PP_KIT;
@@ -9,70 +9,71 @@
     modes: [MODE],
     make: function (api) {
       var ctx = api.ctx;
-      var ROUNDS = 5, PENALTY = 1000, times = [], state = "wait", wait = 1, cueAt = 0, last = 0;
-
-      function arm() { state = "wait"; wait = 0.9 + Math.random() * 2.1; }
+      var ROUNDS = 6, DUR = [0.6, 0.35, 0.62];
+      var idx = 0, elapsed = 0, greenAt = 0, state = "cycle", wait = 0;
+      var times = [], last = 0, done = false;
 
       function record(ms) {
+        if (done) return;
         last = Math.max(1, Math.round(ms));
         times.push(last);
-        api.sfx("good");
+        api.sfx(ms > 500 ? "bad" : "good");
+        if (ms > 500) { api.shake(7); api.haptic(18); }
+        else api.haptic(5);
         if (times.length >= ROUNDS) {
           var sum = 0;
           for (var i = 0; i < times.length; i++) sum += times[i];
+          done = true;
           api.finish(Math.round(sum / times.length));
           return;
         }
-        arm();
+        state = "pause";
+        wait = 0.45;
+        idx = 0;
+        elapsed = 0;
       }
 
       function strike() {
-        if (state === "wait") {
-          last = PENALTY;
-          times.push(last);
-          api.sfx("bad"); api.shake(10); api.haptic([20, 40, 20]);
-          if (times.length >= ROUNDS) {
-            var s = 0;
-            for (var i = 0; i < times.length; i++) s += times[i];
-            api.finish(Math.round(s / times.length));
-            return;
-          }
-          arm();
-          return;
-        }
-        record((api.elapsed - cueAt) * 1000);
+        if (done || state !== "cycle") return;
+        if (idx === 2) record((api.elapsed - greenAt) * 1000);
+        else record(800);
       }
 
       function update(dt) {
-        if (state === "wait") {
+        if (done) return;
+        if (state === "pause") {
           wait -= dt;
-          if (wait <= 0) { state = "go"; cueAt = api.elapsed; api.sfx("pick"); api.haptic(10); }
-        } else if (state === "go" && api.elapsed - cueAt > 2) {
-          last = 999;
-          times.push(last);
-          api.sfx("bad");
-          if (times.length >= ROUNDS) {
-            var s = 0;
-            for (var i = 0; i < times.length; i++) s += times[i];
-            api.finish(Math.round(s / times.length));
-            return;
+          if (wait <= 0) state = "cycle";
+        } else {
+          elapsed += dt;
+          if (elapsed >= DUR[idx]) {
+            if (idx === 2) { record(999); return; }
+            idx++;
+            elapsed = 0;
+            if (idx === 2) { greenAt = api.elapsed; api.sfx("pick"); }
           }
-          arm();
         }
+        if (done) return;
         api.hud(Math.min(times.length + 1, ROUNDS) + " / " + ROUNDS, times.length ? last + " ms" : "ready");
       }
 
       function draw() {
         api.bg();
-        ctx.fillStyle = state === "go" ? api.accent : "rgba(255,255,255,0.08)";
-        rr(ctx, 60, 150, W - 120, H - 300, 26); ctx.fill();
-        api.text(state === "go" ? "GO" : "NOT YET", W / 2, H / 2 - 20, 56,
-          state === "go" ? "#05130b" : "rgba(255,255,255,0.55)");
-        api.text("FALSE START = 1000 ms", W / 2, H - 60, 15, "rgba(255,255,255,0.35)");
-        if (times.length) api.text(last + " ms", W / 2, H - 30, 20, "rgba(255,255,255,0.4)");
+        var names = ["STOP", "SET", "GO"];
+        var colors = ["#ef4444", "#f59e0b", "#22c55e"];
+        for (var i = 0; i < 3; i++) {
+          var on = state === "cycle" && idx === i;
+          var y = 130 + i * 116;
+          ctx.fillStyle = "rgba(255,255,255,0.05)";
+          rr(ctx, W / 2 - 58, y, 116, 92, 46); ctx.fill();
+          ctx.fillStyle = on ? colors[i] : "rgba(255,255,255,0.08)";
+          rr(ctx, W / 2 - 48, y + 8, 96, 76, 38); ctx.fill();
+          api.text(names[i], W / 2, y + 48, 20,
+            on ? "#05130b" : "rgba(255,255,255,0.32)");
+        }
+        api.text("TAP ONLY ON GREEN", W / 2, 70, 18, "rgba(255,255,255,0.5)");
+        if (times.length) api.text(last + " ms", W / 2, H - 42, 20, "rgba(255,255,255,0.4)");
       }
-
-      arm();
 
       return { update: update, draw: draw, down: strike, key: function (code) { if (code === "Space" || code === "Enter") strike(); } };
     },
