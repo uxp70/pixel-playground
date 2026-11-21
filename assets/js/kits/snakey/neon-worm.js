@@ -20,16 +20,17 @@
       var food = { x: 11, y: 7 };
       var score = 0, acc = 0, done = false;
 
-      function occupied(x, y) {
+      function bodyAt(x, y) {
         for (var i = 0; i < snake.length; i++) if (snake[i].x === x && snake[i].y === y) return true;
-        return food.x === x && food.y === y;
+        return false;
       }
 
       function place() {
-        var guard = 0;
-        do {
-          food = { x: Math.floor(rand(0, cols)), y: Math.floor(rand(0, rows)) };
-        } while (occupied(food.x, food.y) && guard++ < 220);
+        var free = [];
+        for (var y = 0; y < rows; y++) {
+          for (var x = 0; x < cols; x++) if (!bodyAt(x, y)) free.push({ x: x, y: y });
+        }
+        if (free.length) food = free[Math.floor(rand(0, free.length))];
       }
 
       function turn(x, y) {

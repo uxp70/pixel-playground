@@ -1,113 +1,134 @@
-/* Shard Smash — every broken brick can split off another ball. Standalone cabinet. */
+/* Shard Smash — aim the cannon, fire a shard, and every brick splits it. Standalone cabinet. */
 (function () {
   "use strict";
   var K = window.PP_KIT;
   var W = K.W, H = K.H, rand = K.rand, clamp = K.clamp, rr = K.roundRect;
 
-  var MODE = { name: "Shard Smash", level: 10, hudA: "Score", hudB: "Balls", pattern: "rain" };
+  var MODE = {
+    name: "Shard Smash", level: 10, hudA: "Score", hudB: "Shards", pattern: "rain",
+    controls: "Aim with the pointer, tap or press space to fire",
+  };
 
   K.register(K.engineId(MODE.name), {
     modes: [MODE],
     make: function (api) {
       var ctx = api.ctx;
-      var padW = 118, px = W / 2 - padW / 2;
-      var bricks = [], balls = [], lives = 3, score = 0, launched = false;
+      var CX = W / 2, CY = H - 46, BARREL = 42;
+      var angle = -Math.PI / 2;
+      var bricks = [], shards = [], ammo = 5, score = 0, over = false, glow = 0;
 
       function wall() {
         bricks = [];
-        var bw = (W - 32) / 6, bh = 24;
+        var bw = 88, bh = 26, gx = 12, gy = 12;
+        var x0 = (W - (6 * bw + 5 * gx)) / 2;
         for (var r = 0; r < 4; r++) {
           for (var c = 0; c < 6; c++) {
-            bricks.push({ x: 16 + c * bw + 3, y: 76 + r * (bh + 8), w: bw - 6, h: bh, hp: 1 });
+            bricks.push({
+              x: x0 + c * (bw + gx), y: 74 + r * (bh + gy),
+              w: bw, h: bh, hp: r === 0 ? 2 : 1,
+            });
           }
         }
       }
 
-      function park() {
-        launched = false;
-        balls = [{ x: px + padW / 2, y: H - 118, vx: 0, vy: 0, r: 9 }];
+      function end() {
+        if (over) return;
+        over = true;
+        api.finish(score);
       }
 
-      function launch() {
-        if (launched) return;
-        launched = true;
-        balls = [{ x: px + padW / 2, y: H - 118, vx: rand(-70, 70), vy: -255, r: 9 }];
+      function aimAt(x, y) {
+        angle = Math.atan2(y - CY, x - CX);
+        if (angle > -0.42) angle = -0.42;
+        if (angle < -Math.PI + 0.42) angle = -Math.PI + 0.42;
+      }
+
+      function fire() {
+        if (over) return;
+        if (ammo <= 0) {
+          api.sfx("bad");
+          api.shake(4);
+          return;
+        }
+        ammo--;
+        shards.push({
+          x: CX + Math.cos(angle) * BARREL,
+          y: CY + Math.sin(angle) * BARREL,
+          vx: Math.cos(angle) * 395,
+          vy: Math.sin(angle) * 395,
+          r: 7,
+        });
+        glow = 0.18;
         api.sfx("pick");
-      }
-
-      function lose() {
-        lives--;
-        api.sfx("bad");
-        api.shake(9);
-        api.haptic(24);
-        if (lives <= 0) { api.finish(score); return; }
-        park();
+        api.haptic(3);
       }
 
       function step(dt) {
-        if (!launched) return;
-        for (var b = balls.length - 1; b >= 0; b--) {
-          var ball = balls[b];
+        for (var s = shards.length - 1; s >= 0; s--) {
+          var ball = shards[s];
           ball.x += ball.vx * dt;
           ball.y += ball.vy * dt;
-          if (ball.x < ball.r + 10) { ball.x = ball.r + 10; ball.vx = Math.abs(ball.vx); api.sfx("pick"); }
-          if (ball.x > W - ball.r - 10) { ball.x = W - ball.r - 10; ball.vx = -Math.abs(ball.vx); api.sfx("pick"); }
-          if (ball.y < ball.r + 10) { ball.y = ball.r + 10; ball.vy = Math.abs(ball.vy); api.sfx("pick"); }
-          if (ball.vy > 0 && ball.y > H - 76 && ball.y < H - 44 && Math.abs(ball.x - (px + padW / 2)) < padW / 2 + 10) {
-            ball.y = H - 76;
-            var off = clamp((ball.x - (px + padW / 2)) / (padW / 2), -1, 1);
-            ball.vx = off * 238;
-            ball.vy = -Math.sqrt(Math.max(255 * 255 - ball.vx * ball.vx, 90));
-            api.sfx("pick");
-          }
+          if (ball.x < ball.r + 8) { ball.x = ball.r + 8; ball.vx = Math.abs(ball.vx); }
+          if (ball.x > W - ball.r - 8) { ball.x = W - ball.r - 8; ball.vx = -Math.abs(ball.vx); }
+          if (ball.y < ball.r + 8) { ball.y = ball.r + 8; ball.vy = Math.abs(ball.vy); }
+
           for (var i = bricks.length - 1; i >= 0; i--) {
             var br = bricks[i];
             if (ball.x < br.x || ball.x > br.x + br.w || ball.y < br.y || ball.y > br.y + br.h) continue;
             var gapX = Math.min(ball.x - br.x, br.x + br.w - ball.x);
             var gapY = Math.min(ball.y - br.y, br.y + br.h - ball.y);
             if (gapX < gapY) ball.vx *= -1; else ball.vy *= -1;
-            bricks.splice(i, 1);
-            score += 10;
-            api.burst(ball.x, ball.y, api.accent, 6);
-            if (balls.length < 5) {
-              balls.push({
-                x: ball.x, y: ball.y,
-                vx: -ball.vx * 0.8, vy: ball.vy,
-                r: 7,
-              });
-              api.sfx("good");
+            br.hp--;
+            if (br.hp <= 0) {
+              bricks.splice(i, 1);
+              score += 10;
+              api.burst(ball.x, ball.y, api.accent, 6);
+              if (shards.length < 6) {
+                var spin = rand(0.4, 0.9) * (Math.random() < 0.5 ? -1 : 1);
+                var cos = Math.cos(spin), sin = Math.sin(spin);
+                shards.push({
+                  x: ball.x, y: ball.y,
+                  vx: (ball.vx * cos - ball.vy * sin) * 0.92,
+                  vy: (ball.vx * sin + ball.vy * cos) * 0.92,
+                  r: 5,
+                });
+                api.sfx("good");
+              }
             }
             break;
           }
-          if (ball.y > H + 30) {
-            balls.splice(b, 1);
-            if (!balls.length) { lose(); if (api.ended) return; }
+
+          if (ball.y > H + 24) {
+            shards.splice(s, 1);
           }
         }
-        if (!bricks.length) {
+
+        if (!bricks.length && !over) {
           score += 80;
+          ammo = Math.min(6, ammo + 3);
           wall();
-          park();
           api.sfx("win");
         }
+        if (!shards.length && ammo <= 0 && !over) end();
       }
 
       function update(dt) {
-        if (api.keys.ArrowLeft || api.keys.KeyA) px = clamp(px - 420 * dt, 8, W - padW - 8);
-        if (api.keys.ArrowRight || api.keys.KeyD) px = clamp(px + 420 * dt, 8, W - padW - 8);
-        if (!launched) balls[0].x = px + padW / 2;
+        if (over) return;
+        glow = Math.max(0, glow - dt);
+        if (api.keys.ArrowLeft || api.keys.KeyA) aimAt(CX - 100, CY - 220);
+        if (api.keys.ArrowRight || api.keys.KeyD) aimAt(CX + 100, CY - 220);
         step(dt / 2);
-        if (api.ended) return;
+        if (over) return;
         step(dt / 2);
-        if (api.ended) return;
-        api.hud(score, balls.length + " balls");
+        if (over) return;
+        api.hud(score, shards.length + " live · " + ammo + " ammo");
       }
 
       function draw() {
         api.bg();
         for (var i = 0; i < bricks.length; i++) {
           var br = bricks[i];
-          ctx.fillStyle = "rgba(244,114,182,0.55)";
+          ctx.fillStyle = br.hp > 1 ? "rgba(56,189,248,0.85)" : "rgba(56,189,248,0.45)";
           ctx.beginPath();
           ctx.moveTo(br.x + br.w / 2, br.y);
           ctx.lineTo(br.x + br.w, br.y + br.h / 2);
@@ -116,25 +137,53 @@
           ctx.closePath();
           ctx.fill();
         }
-        ctx.fillStyle = "#f8fafc";
-        rr(ctx, px, H - 62, padW, 14, 7); ctx.fill();
-        for (var j = 0; j < balls.length; j++) {
-          ctx.fillStyle = j % 2 ? "#fb923c" : api.accent;
-          ctx.beginPath(); ctx.arc(balls[j].x, balls[j].y, balls[j].r, 0, Math.PI * 2); ctx.fill();
+
+        ctx.strokeStyle = "rgba(248,250,252,0.28)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 9]);
+        ctx.beginPath();
+        ctx.moveTo(CX + Math.cos(angle) * BARREL, CY + Math.sin(angle) * BARREL);
+        ctx.lineTo(CX + Math.cos(angle) * (BARREL + 70), CY + Math.sin(angle) * (BARREL + 70));
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        for (var j = 0; j < shards.length; j++) {
+          ctx.fillStyle = j % 2 ? "#fbbf24" : api.accent;
+          ctx.beginPath();
+          ctx.arc(shards[j].x, shards[j].y, shards[j].r, 0, Math.PI * 2);
+          ctx.fill();
         }
-        if (!launched) api.text("BREAKS SPLIT BALLS", W / 2, H - 152, 19, "rgba(255,255,255,0.5)");
+
+        ctx.fillStyle = glow > 0 ? "#f8fafc" : "rgba(255,255,255,0.75)";
+        ctx.save();
+        ctx.translate(CX, CY);
+        ctx.rotate(angle);
+        rr(ctx, 0, -8, BARREL + 8, 16, 7);
+        ctx.fill();
+        ctx.restore();
+        ctx.beginPath();
+        ctx.arc(CX, CY, 20, 0, Math.PI * 2);
+        ctx.fill();
+
+        for (var k = 0; k < ammo; k++) {
+          ctx.fillStyle = api.accent;
+          ctx.beginPath();
+          ctx.arc(26 + k * 18, H - 24, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        api.text("EVERY BRICK SPLITS THE SHARD", W / 2, 44, 15, "rgba(255,255,255,0.42)");
       }
 
       wall();
-      park();
 
       return {
         update: update,
         draw: draw,
-        tap: launch,
-        move: function (x) { px = clamp(x - padW / 2, 8, W - padW - 8); },
-        key: function (code) { if (code === "Space" || code === "Enter") launch(); },
-        swipe: function (dx) { px = clamp(px + dx * 46, 8, W - padW - 8); },
+        move: function (x, y) { aimAt(x, y); },
+        down: function (x, y) { aimAt(x, y); fire(); },
+        key: function (code) {
+          if (code === "Space" || code === "Enter") fire();
+        },
       };
     },
   });

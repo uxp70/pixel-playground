@@ -1,0 +1,29 @@
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Syntax
+        run: |
+          set -e
+          find assets games -name '*.js' -print0 | xargs -0 -n1 node --check
+          node --check .kit-smoke.cjs
+          node --check .similarity-check.cjs
+
+      - name: Catalogue and engine harness
+        run: node .kit-smoke.cjs
+
+      - name: Same-family similarity
+        run: node .similarity-check.cjs

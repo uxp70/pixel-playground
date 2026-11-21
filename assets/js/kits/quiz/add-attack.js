@@ -18,8 +18,25 @@
         var r = rand(20, 27);
         orbs.push({
           x: rand(r + 16, W - r - 16), y: -r - 8, r: r,
-          value: 1 + Math.floor(rand(0, 9)), vy: 52 + score * 2.2,
+          value: 1 + Math.floor(rand(0, 9)), vy: 72 + score * 2.6,
         });
+        if (orbs.length >= 2 && !hasPair(target)) retarget();
+      }
+
+      function hasPair(t) {
+        for (var i = 0; i < orbs.length; i++) {
+          for (var j = i + 1; j < orbs.length; j++) {
+            if (orbs[i].value + orbs[j].value === t) return true;
+          }
+        }
+        return false;
+      }
+
+      function retarget() {
+        if (orbs.length < 2) return;
+        var i = Math.floor(rand(0, orbs.length));
+        var j = (i + 1 + Math.floor(rand(0, orbs.length - 1))) % orbs.length;
+        target = orbs[i].value + orbs[j].value;
       }
 
       function end() {
@@ -45,6 +62,7 @@
             api.shake(7);
             api.haptic(18);
             if (lives <= 0) { end(); return; }
+            if (orbs.length >= 2 && !hasPair(target)) retarget();
           }
         }
         api.hud(score, lives + " lives");
@@ -89,7 +107,8 @@
             api.haptic(4);
             orbs = orbs.filter(function (orb) { return orb !== o && orb !== selected; });
             selected = null;
-            target = 6 + Math.floor(rand(0, 10));
+            if (orbs.length >= 2) retarget();
+            else target = 6 + Math.floor(rand(0, 10));
           } else {
             selected = o;
             api.sfx("bad");

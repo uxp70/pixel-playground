@@ -9,9 +9,9 @@
     modes: [MODE],
     make: function (api) {
       var ctx = api.ctx;
-      var size = 4, cell = 104, gap = 10;
+      var size = 4, cell = 94, gap = 10;
       var board = size * cell + (size - 1) * gap;
-      var bx = (W - board) / 2, by = 196;
+      var bx = (W - board) / 2, by = 188;
       var grid = [], target = 0, selected = [], score = 0, timeLeft = 35, done = false;
 
       function pad(i) {

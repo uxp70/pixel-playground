@@ -33,8 +33,15 @@
       function launch() {
         if (launched || over) return;
         launched = true;
-        var vy = rand(-90, 90);
-        balls = [{ x: PX + PW + 12, y: py + PH / 2, vx: Math.sqrt(330 * 330 - vy * vy), vy: vy, r: 9 }];
+        var x0 = PX + PW + 12;
+        var y0 = py + PH / 2;
+        var wallX = W - 34 - (4 * (52 + 8) - 8);
+        var flight = Math.max(0.2, (wallX - x0) / 330);
+        var vy = clamp((rand(96, 286) - y0) / flight, -250, 250);
+        balls = [{
+          x: x0, y: y0,
+          vx: Math.sqrt(Math.max(330 * 330 - vy * vy, 120)), vy: vy, r: 9,
+        }];
         api.sfx("pick");
       }
 

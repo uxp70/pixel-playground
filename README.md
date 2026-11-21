@@ -31,6 +31,21 @@ python3 -m http.server 3000
 # open http://localhost:3000
 ```
 
+## Checks
+
+Two Node scripts guard the catalogue. Neither is needed to serve the site:
+
+```bash
+node .kit-smoke.cjs        # 176 catalogue entries, 160 engines, 13k frames
+node .similarity-check.cjs # same-family engines must not be near-copies
+```
+
+The similarity check normalises each engine (comments, labels, tuning constants
+and local names are ignored), compares the token streams of every pair inside a
+family and fails at 0.9 or above. `--report` prints the closest pairs. GitHub
+Actions runs the same checks on every push to `main` and on pull requests, so a
+constant-only duplicate cannot land.
+
 ## Deploy
 
 The site is served from the repository root on the `main` branch of GitHub

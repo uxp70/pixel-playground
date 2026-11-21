@@ -1,91 +1,147 @@
-/* Trail Twist — each meal makes the snake faster. Standalone cabinet. */
+/* Trail Twist — the controls mirror every third meal, and crossing your trail cuts the tail off. */
 (function () {
   "use strict";
   var K = window.PP_KIT;
-  var W = K.W, H = K.H, rand = K.rand, rr = K.roundRect;
-  var MODE = { name: "Trail Twist", level: 4, hudA: "Score", hudB: "Length", pattern: "dots" };
+  var W = K.W, H = K.H, rr = K.roundRect;
+
+  var MODE = {
+    name: "Trail Twist", level: 4, hudA: "Score", hudB: "Length", pattern: "dots",
+    controls: "Arrows, WASD or swipe — controls mirror every third meal",
+  };
 
   K.register(K.engineId(MODE.name), {
     modes: [MODE],
     make: function (api) {
       var ctx = api.ctx;
-      var cols = 15, rows = 15, cell = W / cols, stepTime = 0.2;
-      var snake = [{ x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 }];
-      var dir = { x: 1, y: 0 }, queued = [], food = { x: 11, y: 7 };
-      var score = 0, acc = 0;
+      var N = 15, CELL = W / N;
+      var body = [112, 111, 110];
+      var dir = { x: 1, y: 0 };
+      var pending = null;
+      var food = 116;
+      var score = 0, cuts = 0, meals = 0, twist = false, acc = 0, step = 0.19;
+      var done = false, flash = 0;
 
-      function occupied(x, y) {
-        for (var i = 0; i < snake.length; i++) if (snake[i].x === x && snake[i].y === y) return true;
-        return food.x === x && food.y === y;
+      function xOf(i) { return i % N; }
+      function yOf(i) { return Math.floor(i / N); }
+
+      function occupied(i) {
+        for (var k = 0; k < body.length; k++) if (body[k] === i) return true;
+        return false;
       }
 
       function place() {
-        var guard = 0;
-        do { food = { x: Math.floor(rand(0, cols)), y: Math.floor(rand(0, rows)) }; }
-        while (occupied(food.x, food.y) && guard++ < 200);
+        var free = [];
+        for (var i = 0; i < N * N; i++) if (i !== food && !occupied(i)) free.push(i);
+        if (free.length) food = free[Math.floor(Math.random() * free.length)];
       }
 
-      function turn(x, y) {
-        var last = queued.length ? queued[queued.length - 1] : dir;
-        if (last.x === -x && last.y === -y) return;
-        if (last.x === x && last.y === y) return;
-        if (queued.length < 2) queued.push({ x: x, y: y });
-      }
-
-      function die() {
+      function end() {
+        if (done) return;
+        done = true;
         api.sfx("bad");
-        api.shake(11);
-        api.haptic([25, 50, 35]);
+        api.shake(10);
+        api.haptic([24, 45, 30]);
         api.finish(score);
       }
 
+      function turn(dx, dy) {
+        if (pending) return;
+        if (twist) dx = -dx;
+        if (dx === -dir.x && dy === -dir.y) return;
+        if (dx === dir.x && dy === dir.y) return;
+        pending = { x: dx, y: dy };
+      }
+
       function tick() {
-        if (queued.length) dir = queued.shift();
-        var head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
-        if (head.x < 0 || head.y < 0 || head.x >= cols || head.y >= rows) { die(); return; }
-        for (var i = 0; i < snake.length - 1; i++) {
-          if (snake[i].x === head.x && snake[i].y === head.y) { die(); return; }
+        if (pending) { dir = pending; pending = null; }
+        var hx = xOf(body[0]) + dir.x;
+        var hy = yOf(body[0]) + dir.y;
+        if (hx < 0 || hy < 0 || hx >= N || hy >= N) { end(); return; }
+
+        var next = hy * N + hx;
+        var ate = next === food;
+        var limit = body.length - (ate ? 0 : 1);
+        var hit = -1;
+        for (var k = 1; k < limit; k++) if (body[k] === next) { hit = k; break; }
+
+        if (hit > 0) {
+          body = [next].concat(body.slice(0, hit));
+          cuts++;
+          score = Math.max(0, score - 5);
+          flash = 0.45;
+          api.sfx("bad");
+          api.shake(6);
+          api.haptic(14);
+          if (body.length < 4) { end(); return; }
+          return;
         }
-        var ate = head.x === food.x && head.y === food.y;
-        snake.unshift(head);
+
+        body.unshift(next);
         if (ate) {
           score += 10;
-          stepTime = Math.max(0.08, stepTime - 0.008);
-          api.sfx("good");
-          api.burst(head.x * cell + cell / 2, head.y * cell + cell / 2, api.accent, 7);
+          meals++;
+          if (meals % 3 === 0) {
+            twist = !twist;
+            api.sfx("win");
+          } else {
+            api.sfx("good");
+          }
+          api.haptic(4);
+          api.burst(hx * CELL + CELL / 2, hy * CELL + CELL / 2, api.accent, 8);
           place();
-        } else snake.pop();
+        } else {
+          body.pop();
+        }
       }
 
       function update(dt) {
+        if (done) return;
+        flash = Math.max(0, flash - dt);
         acc += dt;
-        var guard = 0;
-        while (acc >= stepTime && guard < 4) {
-          acc -= stepTime;
+        var moved = 0;
+        while (acc >= step && moved < 3) {
+          acc -= step;
           tick();
-          guard++;
-          if (api.ended) return;
+          moved++;
+          if (done) return;
         }
-        api.hud(score, snake.length + " long");
+        api.hud(score, body.length + " long");
       }
 
       function draw() {
         api.bg();
-        var i;
-        ctx.fillStyle = "rgba(255,255,255,0.03)";
-        for (i = 0; i < cols; i++) ctx.fillRect(i * cell, 0, 1, H);
-        ctx.fillStyle = "#f87171";
-        ctx.beginPath();
-        ctx.arc(food.x * cell + cell / 2, food.y * cell + cell / 2, cell * 0.26, 0, Math.PI * 2);
-        ctx.fill();
-        for (i = snake.length - 1; i >= 0; i--) {
-          ctx.globalAlpha = i === 0 ? 1 : Math.max(0.25, 1 - i / (snake.length + 4));
-          ctx.fillStyle = i === 0 ? "#f8fafc" : "#22d3ee";
-          rr(ctx, snake[i].x * cell + 3, snake[i].y * cell + 3, cell - 6, cell - 6, 7);
+        ctx.strokeStyle = "rgba(255,255,255,0.045)";
+        ctx.lineWidth = 1;
+        for (var g = 1; g < N; g++) {
+          ctx.beginPath(); ctx.moveTo(g * CELL, 0); ctx.lineTo(g * CELL, H); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, g * CELL); ctx.lineTo(W, g * CELL); ctx.stroke();
+        }
+
+        var fx = xOf(food) * CELL + CELL / 2;
+        var fy = yOf(food) * CELL + CELL / 2;
+        ctx.fillStyle = "rgba(251,191,36,0.32)";
+        ctx.beginPath(); ctx.arc(fx, fy, CELL * 0.28, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#fbbf24";
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(fx, fy, CELL * 0.28, 0, Math.PI * 2); ctx.stroke();
+
+        for (var i = body.length - 1; i >= 0; i--) {
+          var t = i / Math.max(1, body.length);
+          ctx.globalAlpha = i === 0 ? 1 : Math.max(0.28, 0.95 - 0.6 * t);
+          ctx.fillStyle = i === 0 ? "#f8fafc" : (twist ? "#c084fc" : "#2dd4bf");
+          rr(ctx, xOf(body[i]) * CELL + 2, yOf(body[i]) * CELL + 2, CELL - 4, CELL - 4, i === 0 ? 8 : 5);
           ctx.fill();
         }
         ctx.globalAlpha = 1;
-        api.text((1 / stepTime).toFixed(1) + " steps/s", W / 2, H - 18, 13, "rgba(255,255,255,0.28)");
+
+        if (flash > 0) {
+          ctx.globalAlpha = Math.min(1, flash * 2);
+          api.text("CUT!", W / 2, H / 2, 44, "#f87171");
+          ctx.globalAlpha = 1;
+        }
+        api.text(twist ? "CONTROLS MIRRORED" : "CONTROLS NORMAL", W / 2, 34, 13,
+          twist ? "rgba(192,132,252,0.85)" : "rgba(255,255,255,0.3)");
+        api.text(cuts + " cuts", W / 2, H - 18, 12, "rgba(255,255,255,0.26)");
       }
 
       function key(code) {
@@ -95,7 +151,12 @@
         if (code === "ArrowRight" || code === "KeyD") turn(1, 0);
       }
 
-      return { update: update, draw: draw, key: key, swipe: function (dx, dy) { turn(dx, dy); } };
+      return {
+        update: update,
+        draw: draw,
+        key: key,
+        swipe: function (dx, dy) { turn(dx, dy); },
+      };
     },
   });
 })();

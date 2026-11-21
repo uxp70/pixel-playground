@@ -12,7 +12,7 @@
       var size = 3, cell = 132, gap = 14;
       var board = size * cell + (size - 1) * gap;
       var bx = (W - board) / 2, by = 140;
-      var grid = [], rounds = 0, moves = 0, timeLeft = 40, flash = 0;
+      var grid = [], rounds = 0, moves = 0, timeLeft = 40, flash = 0, done = false;
 
       function pad(i) {
         return { x: bx + (i % size) * (cell + gap), y: by + Math.floor(i / size) * (cell + gap), w: cell, h: cell };
@@ -55,9 +55,10 @@
       }
 
       function update(dt) {
+        if (done) return;
         timeLeft -= dt;
         flash = Math.max(0, flash - dt);
-        if (timeLeft <= 0) { api.finish(rounds); return; }
+        if (timeLeft <= 0) { done = true; api.finish(rounds); return; }
         api.hud(rounds, moves + " moves");
       }
 
@@ -86,6 +87,7 @@
       }
 
       function press(i) {
+        if (done) return;
         toggle(i);
         moves++;
         flash = 0.12;
